@@ -2130,6 +2130,46 @@
   .slider-breakdown .bd-pill.fill .num { color: var(--green); }
   .slider-breakdown .bd-pill.mc .num { color: var(--blue); }
   .slider-breakdown .bd-pill.tf .num { color: var(--amber); }
+
+  /* Type-mix sliders */
+  .type-mix-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .type-mix-row:last-of-type { margin-bottom: 0; }
+  .type-mix-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .type-mix-label .bd-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+  }
+  .type-mix-label .bd-pill .num { font-weight: 600; margin-right: 4px; }
+  .type-mix-label .bd-pill.fill .num { color: var(--green); }
+  .type-mix-label .bd-pill.mc .num { color: var(--blue); }
+  .type-mix-label .bd-pill.tf .num { color: var(--amber); }
+  .type-mix-slider::-webkit-slider-thumb { background: var(--text-2); box-shadow: 0 0 0 1px var(--text-2); }
+  .type-mix-slider::-moz-range-thumb { background: var(--text-2); box-shadow: 0 0 0 1px var(--text-2); }
+  .type-mix-sum {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+  @media (max-width: 600px) {
+    .type-mix-row { grid-template-columns: 1fr; gap: 6px; }
+  }
+
   .test-q:focus-within { border-color: var(--blue); }
   .test-q.answered { background: var(--surface-2); }
   .test-q-num {
@@ -3823,6 +3863,15 @@ const storage = {
     }
     if (this.data.settings.testConfig && typeof this.data.settings.testConfig === 'object') {
       state.testConfig = { ...state.testConfig, ...this.data.settings.testConfig };
+      // Backward compat: if loaded config has fillInPercent but no typeMix,
+      // derive the typeMix from it (rest split evenly between MC and T/F).
+      if (!state.testConfig.typeMix || typeof state.testConfig.typeMix !== 'object') {
+        const fill = Math.max(0, Math.min(100, Number(state.testConfig.fillInPercent ?? 30)));
+        const remaining = 100 - fill;
+        const mc = Math.ceil(remaining / 2);
+        const tf = remaining - mc;
+        state.testConfig.typeMix = { fill, mc, tf };
+      }
     }
     if (typeof this.data.settings.voiceInputOn === 'boolean') {
       state.voiceInputOn = this.data.settings.voiceInputOn;
@@ -4089,7 +4138,12 @@ const state = {
     direction: 'codeToMeaning',// 'codeToMeaning' or 'meaningToCode'
     strict: false,             // if true, exact match (case-insensitive); if false, fuzzy match
     order: 'random',           // 'random' or 'numeric'
-    fillInPercent: 30,         // % of questions that are fill-in-the-blank
+    fillInPercent: 30,         // % fill-in (legacy field; kept for back-compat)
+    typeMix: {                 // % per type — must sum to 100
+      fill: 30,
+      mc: 35,
+      tf: 35,
+    },
   },
   testQuestions: [],           // array of { card, type, ... } objects in question order
   testAnswers: {},             // { questionIndex: user answer (string for fill-in, option index for MC, bool for T/F) }
@@ -4618,7 +4672,42 @@ function getTestCardPool(category) {
 // Build a mixed test deck — array of question objects with explicit types.
 // Question types: 'mc' (multiple choice, 4 options), 'tf' (true/false), 'fill' (typed answer).
 // fillInPercent (0-100) controls how many are fill-in; the rest split evenly MC/TF.
-function buildTestDeck(category, questionCount, order, fillInPercent, direction) {
+// Normalize a type-mix object so its fields sum to 100.
+// Handles missing fields, all-zero, and sums that don't equal 100.
+function normalizeTypeMix(mix) {
+  const m = {
+    fill: Math.max(0, Number(mix?.fill ?? 30)),
+    mc:   Math.max(0, Number(mix?.mc   ?? 35)),
+    tf:   Math.max(0, Number(mix?.tf   ?? 35)),
+  };
+  const sum = m.fill + m.mc + m.tf;
+  if (sum === 0) return { fill: 30, mc: 35, tf: 35 };
+  if (sum === 100) return m;
+  // Scale to 100
+  return {
+    fill: (m.fill / sum) * 100,
+    mc:   (m.mc / sum) * 100,
+    tf:   (m.tf / sum) * 100,
+  };
+}
+
+// Given a total number of questions and a normalized mix, return integer counts
+// per type that sum exactly to the total. Off-by-one rounding errors are
+// absorbed by the largest bucket.
+function getTypeMixCounts(total, mix) {
+  const n = normalizeTypeMix(mix);
+  let fillCount = Math.round(total * (n.fill / 100));
+  let mcCount = Math.round(total * (n.mc / 100));
+  let tfCount = total - fillCount - mcCount;
+  if (tfCount < 0) {
+    if (fillCount >= mcCount) fillCount += tfCount;
+    else mcCount += tfCount;
+    tfCount = 0;
+  }
+  return { fill: fillCount, mc: mcCount, tf: tfCount };
+}
+
+function buildTestDeck(category, questionCount, order, typeMix, direction) {
   const pool = getTestCardPool(category);
   const limit = questionCount === 'all' ? pool.length : Math.min(questionCount, pool.length);
 
@@ -4630,12 +4719,9 @@ function buildTestDeck(category, questionCount, order, fillInPercent, direction)
     cards = shuffle(pool).slice(0, limit);
   }
 
-  // Assign question types deterministically
+  // Normalize the type mix in case the percentages don't sum to exactly 100
   const total = cards.length;
-  const fillCount = Math.round(total * (fillInPercent / 100));
-  const remaining = total - fillCount;
-  const mcCount = Math.ceil(remaining / 2);
-  const tfCount = remaining - mcCount;
+  const { fill: fillCount, mc: mcCount, tf: tfCount } = getTypeMixCounts(total, typeMix);
 
   const typeAssignments = [
     ...Array(fillCount).fill('fill'),
@@ -4756,17 +4842,56 @@ function computeTestSummary(results, total) {
 
 // Slider value changed — update displayed number, breakdown, start-button label.
 // Done without a full re-render so the slider's drag interaction stays smooth.
+// Type-mix slider value changed — update its pill label, the running sum,
+// the bottom breakdown, and the start-button label. No full re-render so
+// the user's slider drag isn't interrupted.
+function handleTypeMixChange(key, v) {
+  const cfg = state.testConfig;
+  if (!cfg.typeMix) cfg.typeMix = { fill: 30, mc: 35, tf: 35 };
+  cfg.typeMix[key] = v;
+  storage.saveTestConfig(cfg);
+
+  // Update this slider's own pill label
+  const labelPill = document.querySelector(`#type-mix-${key}`)?.closest('.type-mix-row')?.querySelector('.bd-pill .num');
+  if (labelPill) labelPill.textContent = `${v}%`;
+
+  // Update the sum indicator
+  const sum = (cfg.typeMix.fill || 0) + (cfg.typeMix.mc || 0) + (cfg.typeMix.tf || 0);
+  const sumEl = document.getElementById('type-mix-sum');
+  if (sumEl) {
+    sumEl.innerHTML = sum === 100
+      ? `<span style="color: var(--green);">✓ Total: 100%</span>`
+      : `<span style="color: var(--amber);">⚠ Total: ${Math.round(sum)}% — will be normalized to 100% when test starts</span>`;
+  }
+
+  // Update the count breakdown at the bottom of the question count section
+  const selectedCats = resolveTestCategories(cfg.category);
+  const catCardCount = selectedCats.reduce((s, id) => s + (ALL_CARDS[id]?.length || 0), 0);
+  const willActually = cfg.questionCount === 'all'
+    ? catCardCount
+    : Math.min(typeof cfg.questionCount === 'number' ? cfg.questionCount : 100, catCardCount);
+  const counts = getTypeMixCounts(willActually, cfg.typeMix);
+  const breakdown = document.querySelector('.slider-breakdown');
+  if (breakdown && !breakdown.textContent.includes('Only')) {
+    // Only the main breakdown — not the warning variant
+    breakdown.innerHTML = `
+      <span class="bd-pill fill">FILL-IN: <span class="num">${counts.fill}</span></span>
+      <span class="bd-pill mc">MULTIPLE CHOICE: <span class="num">${counts.mc}</span></span>
+      <span class="bd-pill tf">TRUE/FALSE: <span class="num">${counts.tf}</span></span>
+    `;
+  }
+}
+
 function handleSliderChange(v) {
   state.testConfig.questionCount = v;
   const cfg = state.testConfig;
   const selectedCats = resolveTestCategories(cfg.category);
   const catCardCount = selectedCats.reduce((sum, id) => sum + (ALL_CARDS[id]?.length || 0), 0);
   const willActually = Math.min(v, catCardCount);
-  const fillPct = cfg.fillInPercent || 30;
-  const fillC = Math.round(willActually * (fillPct / 100));
-  const rem = willActually - fillC;
-  const mcC = Math.ceil(rem / 2);
-  const tfC = rem - mcC;
+  const counts = getTypeMixCounts(willActually, cfg.typeMix);
+  const fillC = counts.fill;
+  const mcC = counts.mc;
+  const tfC = counts.tf;
 
   const valEl = document.querySelector('.slider-value');
   if (valEl) {
@@ -4821,7 +4946,7 @@ function startTestConfig() {
 function startTest() {
   const cfg = state.testConfig;
   storage.saveTestConfig(cfg);
-  const deck = buildTestDeck(cfg.category, cfg.questionCount, cfg.order, cfg.fillInPercent, cfg.direction);
+  const deck = buildTestDeck(cfg.category, cfg.questionCount, cfg.order, cfg.typeMix, cfg.direction);
   if (deck.length === 0) {
     alert('No cards available for this category. Pick another.');
     return;
@@ -5343,11 +5468,12 @@ function renderTestConfig() {
     : Math.min(clampedCount, catCardCount);
 
   // Breakdown of question types for the live preview
-  const fillPct = cfg.fillInPercent || 30;
-  const fillCount = Math.round(willActuallyTest * (fillPct / 100));
-  const remaining = willActuallyTest - fillCount;
-  const mcCount = Math.ceil(remaining / 2);
-  const tfCount = remaining - mcCount;
+  const mixCounts = getTypeMixCounts(willActuallyTest, cfg.typeMix);
+  const fillCount = mixCounts.fill;
+  const mcCount = mixCounts.mc;
+  const tfCount = mixCounts.tf;
+  const mixNormalized = normalizeTypeMix(cfg.typeMix);
+  const mixSum = (cfg.typeMix?.fill ?? 0) + (cfg.typeMix?.mc ?? 0) + (cfg.typeMix?.tf ?? 0);
 
   // Build category chips — like the daily-drill filter
   const categoryChips = allCats.map(cat => {
@@ -5429,6 +5555,61 @@ function renderTestConfig() {
                 Only ${catCardCount} cards available — your test will be ${catCardCount} questions
               </div>
             ` : ''}
+          </div>
+        </div>
+
+        <div class="config-section">
+          <div class="config-label mono">QUESTION TYPE MIX</div>
+          <div class="slider-container">
+            <div class="type-mix-row">
+              <div class="type-mix-label">
+                <span class="bd-pill fill"><span class="num">${cfg.typeMix?.fill ?? 30}%</span> FILL-IN</span>
+              </div>
+              <input
+                type="range"
+                class="test-slider type-mix-slider"
+                id="type-mix-fill"
+                min="0" max="100" step="5"
+                value="${cfg.typeMix?.fill ?? 30}"
+              >
+            </div>
+            <div class="type-mix-row">
+              <div class="type-mix-label">
+                <span class="bd-pill mc"><span class="num">${cfg.typeMix?.mc ?? 35}%</span> MULTIPLE CHOICE</span>
+              </div>
+              <input
+                type="range"
+                class="test-slider type-mix-slider"
+                id="type-mix-mc"
+                min="0" max="100" step="5"
+                value="${cfg.typeMix?.mc ?? 35}"
+              >
+            </div>
+            <div class="type-mix-row">
+              <div class="type-mix-label">
+                <span class="bd-pill tf"><span class="num">${cfg.typeMix?.tf ?? 35}%</span> TRUE / FALSE</span>
+              </div>
+              <input
+                type="range"
+                class="test-slider type-mix-slider"
+                id="type-mix-tf"
+                min="0" max="100" step="5"
+                value="${cfg.typeMix?.tf ?? 35}"
+              >
+            </div>
+
+            <div class="type-mix-sum mono" id="type-mix-sum">
+              ${mixSum === 100
+                ? `<span style="color: var(--green);">✓ Total: 100%</span>`
+                : `<span style="color: var(--amber);">⚠ Total: ${Math.round(mixSum)}% — will be normalized to 100% when test starts</span>`
+              }
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;">
+              <button class="slider-all-btn" style="width: auto; padding: 6px 12px; font-size: 10px; margin-top: 0; flex: 1; min-width: 130px;" data-action="set-type-mix-preset" data-preset="balanced">Balanced (30/35/35)</button>
+              <button class="slider-all-btn" style="width: auto; padding: 6px 12px; font-size: 10px; margin-top: 0; flex: 1; min-width: 130px;" data-action="set-type-mix-preset" data-preset="recall">Recall-heavy (60/20/20)</button>
+              <button class="slider-all-btn" style="width: auto; padding: 6px 12px; font-size: 10px; margin-top: 0; flex: 1; min-width: 130px;" data-action="set-type-mix-preset" data-preset="recognition">Recognition (0/50/50)</button>
+            </div>
           </div>
         </div>
 
@@ -6820,6 +7001,16 @@ function attachHandlers() {
     });
   }
 
+  // Type-mix sliders — same pattern as the count slider above.
+  ['type-mix-fill', 'type-mix-mc', 'type-mix-tf'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const key = id.split('-').pop(); // 'fill', 'mc', or 'tf'
+    el.addEventListener('input', (e) => {
+      handleTypeMixChange(key, parseInt(e.target.value));
+    });
+  });
+
   // Focus typing input when in type mode; blur it once answer's been checked
   // so the global keyboard handler can advance on Enter.
   if ((state.view === 'study' || state.view === 'daily') && state.mode === 'type') {
@@ -7112,6 +7303,21 @@ function handleAction(e) {
       storage.saveTestConfig(state.testConfig);
       render();
       break;
+
+    case 'set-type-mix-preset': {
+      const presets = {
+        balanced:    { fill: 30, mc: 35, tf: 35 },
+        recall:      { fill: 60, mc: 20, tf: 20 },
+        recognition: { fill: 0,  mc: 50, tf: 50 },
+      };
+      const preset = presets[el.dataset.preset];
+      if (preset) {
+        state.testConfig.typeMix = { ...preset };
+        storage.saveTestConfig(state.testConfig);
+        render();
+      }
+      break;
+    }
 
     // Backward compat: old single-select category buttons (no longer rendered, but
     // keep the handler in case of any lingering references)
