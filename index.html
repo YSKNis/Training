@@ -1408,6 +1408,81 @@
     cursor: pointer;
   }
 
+  /* CAD call-entry panel */
+  .callsim-cad-label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 10px 0 4px;
+  }
+  .callsim-cad-label:first-of-type { margin-top: 0; }
+  .callsim-cad-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  .callsim-cad-input:focus { border-color: var(--blue); }
+  .callsim-cad-select {
+    cursor: pointer;
+    padding-right: 26px;
+  }
+  .callsim-cad-narrative {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.4;
+  }
+  .callsim-checklist-toggle {
+    background: transparent;
+    border: 0;
+    color: var(--blue);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+  }
+  .callsim-checklist-toggle:hover { color: #82baff; }
+
+  /* CAD review rows in debrief */
+  .callsim-cad-review-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .callsim-cad-review-row:last-child { border-bottom: 0; }
+  .callsim-cad-review-label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 2px;
+  }
+  .callsim-cad-review-entered { font-size: 14px; }
+  .callsim-cad-review-entered.ok { color: var(--green); }
+  .callsim-cad-review-entered.bad { color: var(--red); }
+  .callsim-cad-review-correct {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  @media (max-width: 600px) {
+    .callsim-cad-review-row { grid-template-columns: 1fr; gap: 2px; }
+  }
+
   /* Right side panel: checklist + caller info */
   .callsim-sidebar {
     display: flex;
@@ -3478,7 +3553,7 @@
    confirm GitHub Pages has served the new version (it caches).
    Format: v MAJOR.MINOR — YYYY-MM-DD
    ============================================================ */
-const APP_VERSION = 'v1.7 — 2026-06-07';
+const APP_VERSION = 'v1.8 — 2026-06-07';
 
 /* ============================================================
    DATA — PBSO Dispatch Signals & Codes
@@ -5352,6 +5427,16 @@ const state = {
     endedAt: null,
     listening: false,    // mic is currently capturing
     autoSpeak: true,     // TTS reads caller responses
+    emsConferenced: false,
+    showChecklist: false, // priority checklist hidden by default; toggle to reveal
+    // CAD-style call entry — what the trainee types up during the call
+    cad: {
+      location: '',
+      signal: '',        // the signal CODE the trainee classifies it as (e.g. 'S/22')
+      callerName: '',
+      callerNumber: '',
+      narrative: '',
+    },
   },
 };
 
@@ -7378,6 +7463,9 @@ function renderTestResults() {
 
 function startCallSim() {
   state.view = 'callsim-picker';
+  // Shuffle scenario order so trainees can't memorize "scenario 3 = burglary".
+  // Persist the order for this picker session so numbering is stable per visit.
+  state.callSimOrder = shuffle(CALL_SCENARIOS.map(s => s.id));
   state.callSim = {
     scenarioId: null,
     transcript: [],
@@ -7388,6 +7476,9 @@ function startCallSim() {
     endedAt: null,
     listening: false,
     autoSpeak: state.callSim?.autoSpeak ?? true,
+    emsConferenced: false,
+    showChecklist: false,
+    cad: { location: '', signal: '', callerName: '', callerNumber: '', narrative: '' },
   };
   render();
 }
@@ -7412,6 +7503,8 @@ function pickCallScenario(scenarioId) {
     endedAt: null,
     listening: false,
     autoSpeak: state.callSim.autoSpeak,
+    showChecklist: false,
+    cad: { location: '', signal: '', callerName: '', callerNumber: '', narrative: '' },
   };
   state.view = 'callsim-call';
   render();
@@ -7632,12 +7725,74 @@ function gradeCallSim() {
     tier = 'fail';
   }
 
+  // Grade the CAD call-entry fields against ground truth
+  const cad = state.callSim.cad || {};
+  const truthAddress = `${scenario.location.address} ${scenario.location.apt || ''} ${scenario.location.city}`.trim();
+  const cadResults = {
+    location: {
+      entered: cad.location || '',
+      correct: truthAddress,
+      ok: cadLocationMatch(cad.location, scenario),
+    },
+    signal: {
+      entered: cad.signal || '',
+      correct: scenario.signal,
+      ok: cadSignalMatch(cad.signal, scenario.signal),
+    },
+    callerName: {
+      entered: cad.callerName || '',
+      correct: scenario.caller.name,
+      ok: cadNameMatch(cad.callerName, scenario.caller.name),
+    },
+    callerNumber: {
+      entered: cad.callerNumber || '',
+      correct: scenario.caller.callback,
+      ok: cadNumberMatch(cad.callerNumber, scenario.caller.callback),
+    },
+  };
+
   return {
     checklist, officerSafety, priorityHits, priorityTotal, safetyHits, safetyTotal,
     pct, tier, autoFail, autoFailReason,
     emsConferenced: !!state.callSim.emsConferenced,
     requiresEMS: !!scenario.requiresEMS,
+    cad: cadResults,
+    narrative: cad.narrative || '',
   };
+}
+
+// CAD field matchers — lenient, since the trainee types from a spoken conversation.
+function cadSignalMatch(entered, correct) {
+  if (!entered) return false;
+  const norm = s => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return norm(entered) === norm(correct);
+}
+function cadNumberMatch(entered, correct) {
+  if (!entered) return false;
+  const digits = s => (s || '').replace(/\D/g, '');
+  return digits(entered) === digits(correct);
+}
+function cadNameMatch(entered, correct) {
+  if (!entered) return false;
+  const norm = s => (s || '').toLowerCase().replace(/[^a-z ]/g, '').trim();
+  const e = norm(entered), c = norm(correct);
+  if (!e) return false;
+  // Match if entered contains the correct last name (most important) or vice versa
+  const cParts = c.split(/\s+/);
+  const lastName = cParts[cParts.length - 1];
+  return e.includes(lastName) || c.includes(e) || e === c;
+}
+function cadLocationMatch(entered, scenario) {
+  if (!entered) return false;
+  const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+  const e = norm(entered);
+  // The street number is the most important token — check it's present
+  const streetNum = (scenario.location.address.match(/\d+/) || [''])[0];
+  if (streetNum && e.includes(streetNum)) return true;
+  // Or a strong match on the street name
+  const addrNorm = norm(scenario.location.address);
+  const streetWords = addrNorm.replace(/^\d+\s*/, '');
+  return streetWords.length > 0 && e.includes(streetWords.split(' ')[0]) && e.length > 4;
 }
 
 function friendlyCategoryName(catId) {
@@ -7712,13 +7867,22 @@ function friendlyCategoryName(catId) {
 /* ---------- CALL SIM RENDER: scenario picker ---------- */
 
 function renderCallSimPicker() {
-  const cards = CALL_SCENARIOS.map(s => `
-    <button class="callsim-scenario" data-action="pick-call-scenario" data-scenario="${s.id}">
-      <div class="callsim-scenario-signal mono">${s.signal}</div>
-      <div class="callsim-scenario-title">${escapeHtml(s.title)}</div>
-      <div class="callsim-scenario-difficulty mono ${s.difficulty}">${s.difficulty.toUpperCase()}</div>
-    </button>
-  `).join('');
+  // Use the shuffled order; fall back to default order if not set
+  const order = (state.callSimOrder && state.callSimOrder.length)
+    ? state.callSimOrder
+    : CALL_SCENARIOS.map(s => s.id);
+
+  const cards = order.map((id, i) => {
+    const s = CALL_SCENARIOS.find(x => x.id === id);
+    if (!s) return '';
+    return `
+      <button class="callsim-scenario" data-action="pick-call-scenario" data-scenario="${s.id}">
+        <div class="callsim-scenario-signal mono">CALL #${i + 1}</div>
+        <div class="callsim-scenario-title">Unknown caller</div>
+        <div class="callsim-scenario-difficulty mono ${s.difficulty}">${s.difficulty.toUpperCase()}</div>
+      </button>
+    `;
+  }).join('');
 
   return `
     <main>
@@ -7727,17 +7891,19 @@ function renderCallSimPicker() {
           <div>
             <button class="back-btn" data-action="home" style="margin-bottom: 12px;">← HOME</button>
             <h1>Call Simulator</h1>
-            <div class="callsim-sub mono">Practice the dispatcher interview · Pick a scenario to begin</div>
+            <div class="callsim-sub mono">You take the call cold · Determine the signal yourself · Type it up</div>
           </div>
+          <button class="callsim-send-btn" style="background: var(--surface-3); color: var(--text);" data-action="reshuffle-call-sim">↻ Reshuffle</button>
         </div>
 
         <div class="callsim-scenarios">${cards}</div>
 
         <div class="callsim-debrief-advice" style="margin-top: 18px;">
-          <strong>How this works:</strong> You'll play the dispatcher. The app plays the caller.
-          Ask questions by typing or by clicking the microphone (Chrome/Edge only).
-          Get the priority information (location, callback, nature, weapons, etc.) before ending the call.
-          Each scenario tracks which categories you covered — debrief shows what you got and what you missed.
+          <strong>How this works:</strong> You play the call-taker. You don't know the call type going in —
+          you figure it out from what the caller says. Ask questions (type or mic), fill in the CAD panel
+          on the right (location, signal, caller name & number, narrative), and conference EMS when the call
+          needs it. The signal and the right answers stay hidden until your debrief, where your entries are
+          graded against what was actually going on.
         </div>
       </div>
     </main>
@@ -7766,9 +7932,8 @@ function renderCallSimCall() {
   `;
   }).join('');
 
-  // Priority checklist (live, ticks off as the player asks)
+  // Priority checklist (live, ticks off as the player asks) — hidden behind a toggle
   const asked = state.callSim.categoriesAsked || {};
-  // Combine priority + officer safety in the sidebar; show priority first
   const allItems = [
     ...scenario.priorityChecklist.map(c => ({ id: c, priority: true })),
     ...scenario.officerSafety.filter(c => !scenario.priorityChecklist.includes(c)).map(c => ({ id: c, priority: false })),
@@ -7785,8 +7950,14 @@ function renderCallSimCall() {
     `;
   }).join('');
 
-  const callerLine = `${scenario.caller.name} · ${scenario.caller.demeanor}`;
   const micAvailable = recognizer.available;
+  const cad = state.callSim.cad;
+
+  // Signal dropdown options — built from the signals category
+  const signalCards = ALL_CARDS.signals || [];
+  const signalOptions = ['<option value="">— select signal —</option>']
+    .concat(signalCards.map(c => `<option value="${escapeHtml(c.code)}" ${cad.signal === c.code ? 'selected' : ''}>${escapeHtml(c.code)} — ${escapeHtml(c.meaning)}</option>`))
+    .join('');
 
   return `
     <main>
@@ -7794,8 +7965,8 @@ function renderCallSimCall() {
         <div class="callsim-header">
           <div>
             <button class="back-btn" data-action="abandon-call-sim" style="margin-bottom: 12px;">← END CALL</button>
-            <h1>${escapeHtml(scenario.title)}</h1>
-            <div class="callsim-sub mono">${escapeHtml(scenario.signal)} · ${escapeHtml(callerLine)}</div>
+            <h1>Active Call</h1>
+            <div class="callsim-sub mono">Caller on the line · Classify and type up the call</div>
           </div>
         </div>
 
@@ -7841,9 +8012,9 @@ function renderCallSimCall() {
           <div class="callsim-sidebar">
             ${scenario.requiresEMS && !state.callSim.emsConferenced ? `
               <div class="callsim-panel" style="border-color: var(--red); background: rgba(248, 113, 113, 0.08);">
-                <div class="callsim-panel-title mono" style="color: var(--red);">⚠ Medical / Injury call</div>
+                <div class="callsim-panel-title mono" style="color: var(--red);">⚠ This call needs EMS</div>
                 <div style="font-size: 12px; color: var(--text-2); line-height: 1.5;">
-                  You must conference Fire Rescue / EMS on this call. Tell the caller you're connecting them — e.g. "I'm getting Fire Rescue on the line now." Not doing it fails the call.
+                  Conference Fire Rescue — tell the caller you're connecting them. Not doing it fails the call.
                 </div>
               </div>
             ` : ''}
@@ -7853,10 +8024,43 @@ function renderCallSimCall() {
                 <div style="font-size: 12px; color: var(--text-2);">Fire Rescue is on the line. Good.</div>
               </div>
             ` : ''}
-            <div class="callsim-panel">
-              <div class="callsim-panel-title mono">Priority info to gather</div>
-              <div class="callsim-checklist">${checklistHtml}</div>
+
+            <!-- CAD CALL ENTRY -->
+            <div class="callsim-panel callsim-cad">
+              <div class="callsim-panel-title mono">Call entry (CAD)</div>
+              <label class="callsim-cad-label mono">Location</label>
+              <input type="text" class="callsim-cad-input" data-cad="location" value="${escapeHtml(cad.location)}" placeholder="Address / location" autocomplete="off">
+
+              <label class="callsim-cad-label mono">Call class / signal</label>
+              <select class="callsim-cad-input callsim-cad-select" data-cad="signal">${signalOptions}</select>
+
+              <label class="callsim-cad-label mono">Caller name</label>
+              <input type="text" class="callsim-cad-input" data-cad="callerName" value="${escapeHtml(cad.callerName)}" placeholder="Reporting party" autocomplete="off">
+
+              <label class="callsim-cad-label mono">Caller number</label>
+              <input type="text" class="callsim-cad-input" data-cad="callerNumber" value="${escapeHtml(cad.callerNumber)}" placeholder="Callback number" autocomplete="off">
+
+              <label class="callsim-cad-label mono">Narrative</label>
+              <textarea class="callsim-cad-input callsim-cad-narrative" data-cad="narrative" placeholder="Type the call details as you gather them…" rows="5">${escapeHtml(cad.narrative)}</textarea>
             </div>
+
+            <!-- PRIORITY CHECKLIST (hidden by default, toggle to reveal) -->
+            <div class="callsim-panel">
+              <button class="callsim-checklist-toggle mono" data-action="callsim-toggle-checklist">
+                ${state.callSim.showChecklist ? '▾ Hide' : '▸ Show'} priority checklist (training aid)
+              </button>
+              ${state.callSim.showChecklist ? `
+                <div class="callsim-checklist" style="margin-top: 10px;">${checklistHtml}</div>
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 8px; font-family: 'IBM Plex Mono', monospace;">
+                  ⚠ = officer/scene safety. Hide this to test yourself blind.
+                </div>
+              ` : `
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+                  Hidden so you work the call from memory. Reveal it only if you need the training wheels.
+                </div>
+              `}
+            </div>
+
             <button class="callsim-end-btn" data-action="end-call-sim">End Call & Debrief →</button>
           </div>
         </div>
@@ -7952,6 +8156,31 @@ function renderCallSimDebrief() {
             </div>
           </div>
         ` : ''}
+
+        <div class="callsim-debrief-section">
+          <h3>Your call entry vs. the actual call</h3>
+          ${['location','signal','callerName','callerNumber'].map(k => {
+            const r = grade.cad[k];
+            const labels = { location: 'Location', signal: 'Call class / signal', callerName: 'Caller name', callerNumber: 'Caller number' };
+            return `
+              <div class="callsim-cad-review-row">
+                <div class="callsim-cad-review-label mono">${labels[k]}</div>
+                <div class="callsim-cad-review-vals">
+                  <div class="callsim-cad-review-entered ${r.ok ? 'ok' : 'bad'}">
+                    ${r.ok ? '✓' : '✗'} You: ${escapeHtml(r.entered || '— blank —')}
+                  </div>
+                  ${!r.ok ? `<div class="callsim-cad-review-correct">Actual: ${escapeHtml(r.correct)}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+          ${grade.narrative ? `
+            <div style="margin-top: 14px;">
+              <div class="callsim-cad-review-label mono" style="margin-bottom: 6px;">Your narrative</div>
+              <div style="background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; font-size: 13px; color: var(--text-2); white-space: pre-wrap; line-height: 1.4;">${escapeHtml(grade.narrative)}</div>
+            </div>
+          ` : `<div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">No narrative was entered.</div>`}
+        </div>
 
         <div class="callsim-debrief-section">
           <h3>Ground truth — what was actually going on</h3>
@@ -9266,8 +9495,10 @@ function attachHandlers() {
   if (state.view === 'callsim-call') {
     const input = document.getElementById('callsim-input');
     if (input) {
-      // Focus input on entry so player can immediately type
-      input.focus();
+      // Focus the question box on entry, but not if a CAD field is active
+      const active = document.activeElement;
+      const cadActive = active && active.hasAttribute && active.hasAttribute('data-cad');
+      if (!cadActive) input.focus();
       input.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -9277,6 +9508,16 @@ function attachHandlers() {
         }
       });
     }
+
+    // CAD field bindings — write straight to state, no re-render (preserves focus
+    // and caret position while typing the narrative).
+    document.querySelectorAll('[data-cad]').forEach(field => {
+      const key = field.dataset.cad;
+      const evt = field.tagName === 'SELECT' ? 'change' : 'input';
+      field.addEventListener(evt, e => {
+        state.callSim.cad[key] = e.target.value;
+      });
+    });
   }
 
   // Close settings when clicking outside
@@ -9509,6 +9750,16 @@ function handleAction(e) {
     case 'callsim-toggle-autospeak':
       state.callSim.autoSpeak = !state.callSim.autoSpeak;
       // Don't full re-render — just keep the checkbox state
+      break;
+
+    case 'callsim-toggle-checklist':
+      state.callSim.showChecklist = !state.callSim.showChecklist;
+      render();
+      break;
+
+    case 'reshuffle-call-sim':
+      state.callSimOrder = shuffle(CALL_SCENARIOS.map(s => s.id));
+      render();
       break;
 
     case 'end-call-sim':
