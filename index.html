@@ -3474,6 +3474,13 @@
 
 <script>
 /* ============================================================
+   APP VERSION — bump this whenever the file changes so you can
+   confirm GitHub Pages has served the new version (it caches).
+   Format: v MAJOR.MINOR — YYYY-MM-DD
+   ============================================================ */
+const APP_VERSION = 'v1.7 — 2026-06-07';
+
+/* ============================================================
    DATA — PBSO Dispatch Signals & Codes
    ============================================================ */
 
@@ -5526,6 +5533,18 @@ const audio = {
 
 const recognizer = {
   available: ('SpeechRecognition' in window) || ('webkitSpeechRecognition' in window),
+  // Speech recognition is only fully reliable in Google Chrome. Edge (MS backend)
+  // and Opera often report the API as present but never return results. Detect
+  // "real Chrome" so we can advise the user when they're somewhere flaky.
+  isReliableBrowser: (() => {
+    const ua = navigator.userAgent;
+    const isEdge = /Edg\//.test(ua);          // Edge identifies as "Edg/"
+    const isOpera = /OPR\//.test(ua) || /Opera/.test(ua);
+    const isChrome = /Chrome\//.test(ua) && !isEdge && !isOpera;
+    // Also exclude Brave/Vivaldi etc. that may not have the backend
+    const isChromeBranded = isChrome && /Google Inc/.test(navigator.vendor || '');
+    return isChromeBranded;
+  })(),
   rec: null,
   listening: false,
   _starting: false,
@@ -6599,7 +6618,7 @@ function renderHome() {
     <main class="home">
       <div class="container">
         <div class="hero">
-          <div class="hero-label mono">PBSO DISPATCH ACADEMY</div>
+          <div class="hero-label mono">PBSO DISPATCH ACADEMY <span style="opacity: 0.5; margin-left: 8px;">${APP_VERSION}</span></div>
           <h1>Radio Codes & <span class="accent">Signals</span>.<br>Committed to memory.</h1>
           <p>An interactive study system for Palm Beach County Sheriff's Office communication signals, 10-codes, and reference codes. Progress saves automatically.</p>
         </div>
@@ -7398,7 +7417,7 @@ function pickCallScenario(scenarioId) {
   render();
 
   // Speak the caller's opening line if autoSpeak is on
-  if (state.callSim.autoSpeak && audio.synth) {
+  if (state.callSim.autoSpeak && audio.available) {
     setTimeout(() => speakCallerLine(scenario.caller.opening), 400);
   }
 }
@@ -7439,7 +7458,7 @@ function sendCallSimQuestion(text) {
     setTimeout(() => {
       const transcript = document.querySelector('.callsim-transcript');
       if (transcript) transcript.scrollTop = transcript.scrollHeight;
-      if (state.callSim.autoSpeak && audio.synth) speakCallerLine("Oh thank God. Okay. Please hurry.");
+      if (state.callSim.autoSpeak && audio.available) speakCallerLine("Oh thank God. Okay. Please hurry.");
       const input = document.querySelector('.callsim-input');
       if (input) input.focus();
     }, 50);
@@ -7453,7 +7472,7 @@ function sendCallSimQuestion(text) {
   setTimeout(() => {
     const transcript = document.querySelector('.callsim-transcript');
     if (transcript) transcript.scrollTop = transcript.scrollHeight;
-    if (state.callSim.autoSpeak && audio.synth) {
+    if (state.callSim.autoSpeak && audio.available) {
       speakCallerLine(response.line);
     }
     // Re-focus the input so the player can immediately ask the next question
@@ -7491,7 +7510,7 @@ function abandonCallSim() {
 // TTS for caller lines — uses the existing audio engine but with a faster rate
 // and slight emotional cues are baked into the script text itself.
 function speakCallerLine(text) {
-  if (!audio.synth) return;
+  if (!audio.available) return;
   // Strip stage directions in parens for cleaner speech
   const cleanText = text.replace(/\([^)]*\)/g, '').trim();
   if (!cleanText) return;
@@ -7805,7 +7824,11 @@ function renderCallSimCall() {
                 >
                 <button class="callsim-send-btn" data-action="callsim-send">Ask →</button>
               </div>
-              <div id="callsim-mic-status" style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); min-height: 14px;"></div>
+              <div id="callsim-mic-status" style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: ${micAvailable && !recognizer.isReliableBrowser ? 'var(--amber)' : 'var(--text-muted)'}; min-height: 14px;">${
+                micAvailable && !recognizer.isReliableBrowser
+                  ? 'Voice input is only reliable in Google Chrome. In this browser it may not capture — use the text box, or open the app in Chrome.'
+                  : ''
+              }</div>
               <div class="callsim-options">
                 <label>
                   <input type="checkbox" data-action="callsim-toggle-autospeak" ${state.callSim.autoSpeak ? 'checked' : ''}>
