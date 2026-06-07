@@ -4820,7 +4820,7 @@ const QUESTION_CATEGORIES = [
   { id: 'conference_ems',      keywords: ['conference', 'transfer you to', 'transferring you', 'connecting you', 'get you fire rescue', 'fire rescue', 'connect you to ems', 'connect you with ems', 'transfer to ems', 'patch you', 'bring ems on', 'get ems on', 'getting the ambulance', 'send you to fire', 'stay on the line for fire', 'stay on for fire', 'getting fire rescue', 'i\'m getting you ems', 'getting you an ambulance', 'getting you the paramedics', 'line for the paramedics', 'connecting you to the paramedics', 'conferencing'] },
   { id: 'combative',           keywords: ['combative', 'violent', 'aggressive', 'fighting anyone', 'is he violent', 'is the patient combative', 'acting out'] },
   // Location / address
-  { id: 'location',            keywords: ['address', 'street address', 'what\'s the address', 'whats the address', 'location of', 'where is the', 'where are you located', 'house number', 'street name'] },
+  { id: 'location',            keywords: ['address', 'street address', 'what\'s the address', 'whats the address', 'your location', 'the location', 'what location', 'what\'s your location', 'whats your location', 'location of', 'where is the emergency', 'where\'s the emergency', 'where are you located', 'house number', 'street name', 'what is your location', 'give me the location', 'give me your location', 'location please', 'exact location', 'physical address'] },
   { id: 'city',                keywords: ['city', 'what city', 'what town', 'municipality'] },
   { id: 'apartment',           keywords: ['apartment', 'apt', 'unit number', 'apt number', 'suite'] },
   { id: 'landmark',            keywords: ['landmark', 'cross street', 'nearest intersection', 'near what', 'closest', 'subdivision', 'neighborhood', 'complex'] },
@@ -4901,6 +4901,28 @@ function matchCallSimQuestion(text) {
       if (t.includes(' ' + kw + ' ') || t.includes(' ' + kw) || t.includes(kw + ' ')) {
         return cat.id;
       }
+    }
+  }
+  // Fallback: strong single words that almost always mean one thing.
+  // Only reached if no multi-word phrase matched above.
+  const singleWordMap = [
+    [['address', 'location'], 'location'],
+    [['name'], 'caller_name'],
+    [['callback', 'phone', 'number', 'telephone'], 'caller_callback'],
+    [['weapon', 'weapons', 'gun', 'armed', 'knife'], 'weapons'],
+    [['breathing', 'breathe'], 'breathing'],
+    [['conscious', 'awake', 'responsive'], 'patient_conscious'],
+    [['injured', 'injuries', 'hurt'], 'injuries'],
+    [['suspect', 'suspects'], 'suspect_description'],
+    [['vehicle', 'car', 'plate', 'tag'], 'vehicle_info'],
+    [['ambulance', 'paramedics', 'ems', 'fire', 'medics', 'rescue'], 'conference_ems'],
+    [['witnesses', 'witness'], 'witnesses'],
+    [['camera', 'cameras', 'video'], 'cameras'],
+    [['age', 'old'], 'patient_age'],
+  ];
+  for (const [words, catId] of singleWordMap) {
+    for (const w of words) {
+      if (t.includes(' ' + w + ' ')) return catId;
     }
   }
   return null;
@@ -5507,16 +5529,20 @@ const recognizer = {
   rec: null,
   listening: false,
   _starting: false,
+  _finalTranscript: '',
+  _manualStop: false,
 
-  // Start a single-shot recognition. onResult(alternatives[]), onError(reason), onEnd()
-  start({ onResult, onError, onEnd } = {}) {
+  // Start recognition. Modes:
+  //   onResult(alternatives[]) — final result (called when stopped or auto-ended)
+  //   onInterim(text)          — live partial transcript while speaking (optional)
+  //   onError(reason), onEnd()
+  // The session stays open (continuous) until you call stop(), so the user
+  // controls the capture window — tap to start, speak, tap to stop.
+  start({ onResult, onInterim, onError, onEnd } = {}) {
     if (!this.available) {
       if (onError) onError('unsupported');
       return;
     }
-
-    // Hard reset any prior recognizer. Detach its handlers FIRST so its pending
-    // onend/onerror (from abort) can't fire into our new session and confuse state.
     this._teardown();
 
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -5528,29 +5554,37 @@ const recognizer = {
       return;
     }
     rec.lang = 'en-US';
-    rec.interimResults = false;
+    rec.interimResults = true;   // show live partial text so the user sees it working
     rec.maxAlternatives = 3;
-    rec.continuous = false;
+    rec.continuous = true;       // stay open until we stop it (don't cut off on a pause)
 
-    let settled = false;  // guard so we only call one terminal callback path
+    this._finalTranscript = '';
+    this._manualStop = false;
+    let settled = false;
 
     rec.onresult = (e) => {
-      const alternatives = [];
-      const res = e.results[0];
-      for (let i = 0; i < res.length; i++) {
-        alternatives.push(res[i].transcript);
+      let interim = '';
+      const finalAlts = [];
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i];
+        if (res.isFinal) {
+          // Capture alternatives from the final chunk
+          for (let j = 0; j < res.length; j++) finalAlts.push(res[j].transcript);
+          this._finalTranscript += (res[0].transcript + ' ');
+        } else {
+          interim += res[0].transcript;
+        }
       }
-      settled = true;
-      this.listening = false;
-      if (onResult) onResult(alternatives);
+      // Emit live interim text (final-so-far + current interim)
+      if (onInterim) onInterim((this._finalTranscript + interim).trim());
     };
 
     rec.onerror = (e) => {
-      // Common reasons: 'no-speech', 'not-allowed', 'service-not-allowed',
-      // 'network', 'aborted', 'audio-capture'
       const reason = e.error || 'error';
-      // 'aborted' is what fires when WE call abort() during teardown — ignore it
-      if (reason === 'aborted') return;
+      if (reason === 'aborted') return; // our own teardown
+      // 'no-speech' in continuous mode can fire spuriously; only surface it if
+      // we have nothing captured AND the user didn't manually stop
+      if (reason === 'no-speech' && this._finalTranscript.trim()) return;
       settled = true;
       this.listening = false;
       if (onError) onError(reason);
@@ -5558,10 +5592,15 @@ const recognizer = {
 
     rec.onend = () => {
       this.listening = false;
-      // If we ended without a result or a real error (e.g. user said nothing,
-      // or Edge ended early), still notify so the UI un-sticks.
-      if (!settled) {
-        settled = true;
+      if (settled) return;
+      settled = true;
+      const finalText = this._finalTranscript.trim();
+      if (finalText) {
+        if (onResult) onResult([finalText]);
+      } else if (this._manualStop) {
+        // User stopped but we got nothing
+        if (onResult) onResult(['']);
+      } else {
         if (onEnd) onEnd();
       }
     };
@@ -5569,23 +5608,28 @@ const recognizer = {
     this.rec = rec;
     this.listening = true;
     this._starting = true;
-    // Defer the actual start by a tick so any prior abort() has fully flushed.
-    // Calling start() too soon after abort() throws InvalidStateError in Edge.
     setTimeout(() => {
       this._starting = false;
-      if (this.rec !== rec) return; // superseded by a newer start
+      if (this.rec !== rec) return;
       try {
         rec.start();
       } catch (e) {
         this.listening = false;
         this.rec = null;
-        // InvalidStateError means it was already started — surface a friendly reason
         if (onError) onError('busy');
       }
     }, 120);
   },
 
-  // Detach handlers and abort without letting callbacks fire into new sessions.
+  // Stop listening and finalize — triggers onResult with whatever was captured.
+  finish() {
+    this._manualStop = true;
+    if (this.rec) {
+      try { this.rec.stop(); } catch (e) {}   // stop() finalizes; abort() would discard
+    }
+    this.listening = false;
+  },
+
   _teardown() {
     if (this.rec) {
       const old = this.rec;
@@ -5594,9 +5638,9 @@ const recognizer = {
       old.onerror = null;
       old.onend = null;
       try { old.abort(); } catch (e) {}
-      try { old.stop(); } catch (e) {}
     }
     this.listening = false;
+    this._finalTranscript = '';
   },
 
   stop() {
@@ -7457,7 +7501,9 @@ function speakCallerLine(text) {
 // Voice input — start listening for the dispatcher's spoken question
 function callSimToggleMic() {
   if (state.callSim.listening) {
-    recognizer.stop();
+    // Second tap = finish and transcribe what was captured
+    showCallSimMicStatus('Processing…');
+    recognizer.finish();
     state.callSim.listening = false;
     updateMicButtonUI();
     return;
@@ -7468,21 +7514,25 @@ function callSimToggleMic() {
   }
   state.callSim.listening = true;
   updateMicButtonUI();
-  showCallSimMicStatus('Listening — speak now…');
+  showCallSimMicStatus('🎤 Listening… speak, then tap the mic again to finish.');
 
   recognizer.start({
+    onInterim: (text) => {
+      // Live feedback — show what's being heard in the input as you speak
+      const input = document.getElementById('callsim-input');
+      if (input && text) input.value = text;
+      if (text) showCallSimMicStatus('🎤 Hearing: "' + text + '" — tap mic to finish.');
+    },
     onResult: (alternatives) => {
-      const text = alternatives[0] || '';
+      const text = (alternatives[0] || '').trim();
       state.callSim.listening = false;
-      // Update the input DIRECTLY without a full re-render (re-render would
-      // destroy the input element and lose the value + focus).
       const input = document.getElementById('callsim-input');
       if (input) {
         input.value = text;
         input.focus();
       }
       updateMicButtonUI();
-      showCallSimMicStatus(text ? 'Heard you — review and tap Ask, or edit first.' : 'Nothing recognized — try again.');
+      showCallSimMicStatus(text ? 'Got it — review and tap "Ask →", or edit first.' : 'Didn\'t catch anything. Tap the mic and try again.');
     },
     onError: (reason) => {
       state.callSim.listening = false;
@@ -7493,7 +7543,7 @@ function callSimToggleMic() {
       if (state.callSim.listening) {
         state.callSim.listening = false;
         updateMicButtonUI();
-        showCallSimMicStatus('Stopped listening. Tap the mic to try again.');
+        showCallSimMicStatus('Stopped. Tap the mic to try again.');
       }
     },
   });
@@ -8924,7 +8974,7 @@ function voiceStartListening() {
 
 function voiceToggleListening() {
   if (state.voiceListening) {
-    recognizer.stop();
+    recognizer.finish();   // finalize and transcribe, don't discard
     state.voiceListening = false;
     render();
   } else {
