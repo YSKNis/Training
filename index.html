@@ -1634,6 +1634,7 @@
   }
   .cad-row textarea { resize: vertical; min-height: 70px; line-height: 1.4; }
   .cad-select { cursor: pointer; }
+  .cad-signal-input { text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.03em; }
   .cad-priority { max-width: 80px; }
   .cad-mini-btn {
     background: #c2cad6;
@@ -3938,7 +3939,7 @@
    confirm GitHub Pages has served the new version (it caches).
    Format: v MAJOR.MINOR — YYYY-MM-DD
    ============================================================ */
-const APP_VERSION = 'v4.0 — 2026-06-12';
+const APP_VERSION = 'v4.3 — 2026-06-15';
 
 /* ============================================================
    DATA — PBSO Dispatch Signals & Codes
@@ -6227,6 +6228,7 @@ const CALL_SCENARIOS = [
     officerSafety: ['weapons'],
     priorityChecklist: ['location', 'caller_info', 'nature', 'duration', 'physical_violence', 'weapons', 'suspect_description'],
     answers: {
+      subject_names: ["It's my landlord, Mr. Patel — Raj Patel. He owns the building and manages it himself.", "Raj Patel, he's the landlord. His office is on the first floor."],
       location: ["1145 10th Avenue North, apartment 3, Lake Worth Beach. It's a fourplex.", "1145 10th Ave North, apt 3."],
       city: ["Lake Worth Beach."],
       landmark: ["The fourplex on 10th Avenue North.", "10th Avenue North, the fourplex."],
@@ -6277,6 +6279,8 @@ const CALL_SCENARIOS = [
     officerSafety: ['weapons'],
     priorityChecklist: ['location', 'caller_info', 'nature', 'assistance_type'],
     answers: {
+      subject_names: ["My ex's name is Brandon Cole. It's his apartment I'm going to. We're not on great terms but I don't expect trouble.", "Brandon Cole — that's my ex. I just want a deputy there while I grab my things."],
+      vehicle_info: ["My ex drives a black Dodge Charger — I don't know the plate. I'll be in my own car, a white Hyundai Elantra, Florida tag.", "He's got a black Charger. I'll be in a white Elantra. No trouble expected, I just want a deputy there."],
       location: ["560 Foresteria Drive, Lake Worth Beach. It's a single-family house.", "560 Foresteria Drive."],
       city: ["Lake Worth Beach."],
       landmark: ["Foresteria Drive, the single-family homes.", "Foresteria Drive."],
@@ -6770,6 +6774,7 @@ const CALL_SCENARIOS = [
     },
     priorityChecklist: ['location', 'caller_info', 'physical_violence', 'weapons', 'nature', 'suspect_description', 'suspect_location'],
     answers: {
+      subject_names: ["Yeah, it's my neighbor — his name's Gary, Gary Holloway. He lives right next door at the house with the white fence.", "Gary Holloway, he's my next-door neighbor. We've had problems over this property line before."],
       location: ["4030 Haverhill Road, West Palm Beach.", "4030 Haverhill Road."],
       city: ["West Palm Beach."],
       landmark: ["It's a single-family home on Haverhill Road. He's in my front yard.", "My house on Haverhill Road."],
@@ -6874,6 +6879,8 @@ const CALL_SCENARIOS = [
     officerSafety: [],
     priorityChecklist: ['location', 'caller_info', 'duration', 'nature', 'weapons'],
     answers: {
+      vehicle_info: ["There are three cars, all in our lot. Mine's a silver 2019 Honda Civic, Florida tag. My neighbor's is a dark blue Ford F-150 pickup, and the third is a red Toyota Camry — I don't have their plate numbers but I can get them.", "Three vehicles: a silver Honda Civic, a blue Ford F-150, and a red Toyota Camry. All keyed down the driver's side. Mine's the Civic, Florida plate."],
+      vehicles: ["Three of them — a silver Honda Civic, a blue Ford F-150, and a red Toyota Camry, all parked in the lot overnight.", "A Civic, an F-150, and a Camry. All three got the same long scratch down the side."],
       location: ["3344 Summit Boulevard, West Palm Beach — Summit Park condos, parking lot C.", "Summit Park condos, 3344 Summit Boulevard, lot C."],
       city: ["West Palm Beach."],
       landmark: ["Summit Park condominiums, it happened in parking lot C.", "Summit Park, parking lot C."],
@@ -7638,6 +7645,7 @@ const CALL_SCENARIOS = [
     officerSafety: ['weapon_type', 'suspect_count', 'premise_hazard'],
     priorityChecklist: ['location', 'caller_info', 'weapon_activity', 'weapon_type', 'injuries', 'supervisor_notify', 'suspect_count', 'suspect_description'],
     answers: {
+      vehicle_info: ["There's no car involved — the shots are coming from up in the building, not a vehicle. I'm just using a car as cover.", "No vehicle, it's coming from the building. I'm crouched behind a parked car for cover, that's all."],
       location: ["2700 North Australian Avenue, West Palm Beach — the office plaza, in the parking lot. The shots are coming from one of the buildings.", "Office plaza at 2700 North Australian Ave."],
       city: ["West Palm Beach."],
       landmark: ["The office plaza on North Australian. The shooting's coming from up high, maybe the third or fourth floor of the main building.", "Office plaza, shots from an upper floor of the main building."],
@@ -8574,35 +8582,35 @@ const CALL_CLASS_CRITERIA = {
 const QUESTION_CATEGORIES = [
   // Must be FIRST: phrases like "transfer you to 911" overlap with EMS-conference
   // keywords below; every keyword here contains "911" so EMS phrasing can't hit it.
-  { id: 'admin_911_transfer',  keywords: ['admin to 911', 'admin to 9-1-1', 'transfer to 911', 'transfer you to 911', 'transferring you to 911', 'transfer this to 911', 'transfer the call to 911', 'transfer to a 911', 'conference a 911', 'conference in a 911', 'conference the 911', '911 call taker', '911 call-taker', 'execute the transfer'] },
+  { id: 'admin_911_transfer',  keywords: ['admin to 911', 'admin to 9-1-1', 'transfer to 911', 'transfer you to 911', 'transferring you to 911', 'transfer this to 911', 'transfer the call to 911', 'transfer to a 911', 'transfer you over to 911', 'transfer you over', 'transferring you over to 911', 'conference a 911', 'conference in a 911', 'conference the 911', '911 call taker', '911 call-taker', 'execute the transfer'] },
   // EMS / fire conference — the critical action on medical & injury calls
   { id: 'conference_ems',      keywords: ['conference', 'transfer you to', 'transferring you', 'connecting you', 'get you fire rescue', 'fire rescue', 'connect you to ems', 'connect you with ems', 'transfer to ems', 'patch you', 'bring ems on', 'get ems on', 'getting the ambulance', 'send you to fire', 'stay on the line for fire', 'stay on for fire', 'getting fire rescue', 'i\'m getting you ems', 'getting you an ambulance', 'getting you the paramedics', 'line for the paramedics', 'connecting you to the paramedics', 'conferencing'] },
   { id: 'combative',           keywords: ['combative', 'violent', 'aggressive', 'fighting anyone', 'is he violent', 'is the patient combative', 'acting out'] },
   // Location / address
-  { id: 'location',            keywords: ['address', 'street address', 'what\'s the address', 'whats the address', 'your location', 'the location', 'what location', 'what\'s your location', 'whats your location', 'location of', 'where is the emergency', 'where\'s the emergency', 'where are you located', 'house number', 'street name', 'what is your location', 'give me the location', 'give me your location', 'location please', 'exact location', 'physical address'] },
-  { id: 'city',                keywords: ['city', 'what city', 'what town', 'municipality'] },
-  { id: 'apartment',           keywords: ['apartment', 'apt', 'unit number', 'apt number', 'suite'] },
-  { id: 'landmark',            keywords: ['landmark', 'cross street', 'nearest intersection', 'near what', 'closest', 'subdivision', 'neighborhood', 'complex'] },
-  { id: 'caller_location',     keywords: ['where are you', 'are you on scene', 'are you there', 'where are you now', 'are you inside', 'are you outside', 'are you in the', 'still on scene'] },
+  { id: 'location',            keywords: ['address', 'street address', 'what\'s the address', 'whats the address', 'your location', 'the location', 'what location', 'what\'s your location', 'whats your location', 'location of', 'where is the emergency', 'where\'s the emergency', 'where are you located', 'house number', 'street name', 'what is your location', 'give me the location', 'give me your location', 'location please', 'exact location', 'physical address', 'where\'s it at', 'wheres it at', 'where is it at', 'where at', 'whereabouts', 'where\'s this at', 'wheres this at', 'where is this at', 'where\'s the incident', 'wheres the incident', 'where is the incident', 'where is all this', 'where\'s all this', 'where is this happening', 'where is this taking place', 'where did this happen', 'where did this take place', 'where did this occur', 'what\'s the 20', 'whats the 20', 'what is your 20', 'where you at', 'where\'s the location', 'wheres the location', 'where is that'] },
+  { id: 'city',                keywords: ['city', 'what city', 'what town', 'municipality', 'what part of town', 'which city', 'which town', 'what area of town', 'jurisdiction'] },
+  { id: 'apartment',           keywords: ['apartment', 'apt', 'unit number', 'apt number', 'suite', 'which unit', 'what unit', 'unit are you in', 'apartment number', 'which apartment', 'what apartment', 'room number', 'lot number'] },
+  { id: 'landmark',            keywords: ['landmark', 'cross street', 'cross streets', 'nearest intersection', 'major intersection', 'near what', 'what\'s it near', 'whats it near', 'what is it near', 'what\'s nearby', 'whats nearby', 'closest', 'subdivision', 'neighborhood', 'complex', 'closest cross', 'nearest cross', 'between what streets', 'what road', 'which road'] },
+  { id: 'caller_location',     keywords: ['where are you', 'are you on scene', 'are you still there', 'are you there now', 'where are you now', 'are you inside', 'are you outside', 'are you in the', 'are you with him', 'are you with her', 'are you with them', 'are you near', 'are you next to', 'are you at the scene', 'are you on location', 'where are you calling from', 'where are you in relation', 'are you in a safe spot to talk'] },
   // Caller info
-  { id: 'caller_name',         keywords: ['your name', 'who am i speaking', 'who\'s calling', 'whos calling', 'may i have your name', 'name please', 'first name', 'last name'] },
-  { id: 'caller_callback',     keywords: ['phone number', 'callback number', 'number you\'re calling', 'best number', 'good number', 'contact number'] },
+  { id: 'caller_name',         keywords: ['your name', 'who am i speaking', 'who\'s calling', 'whos calling', 'may i have your name', 'name please', 'first name', 'last name', 'who do i have', 'who am i talking', 'who do i have on the line', 'and your name', 'get your name', 'have your name', 'your full name', 'spell your last', 'spell your name', 'your first and last', 'can i get your name', 'state your name'] },
+  { id: 'caller_callback',     keywords: ['phone number', 'callback number', 'your callback', 'best callback', 'good callback', 'number you\'re calling', 'number youre calling', 'best number', 'good number', 'contact number', 'good number to reach you', 'number to reach you', 'number to call you', 'reach you back', 'call you back at', 'what\'s your number', 'whats your number', 'your phone', 'cell number', 'your cell'] },
   // Nature of call
-  { id: 'nature',              keywords: ['what\'s going on', 'whats going on', 'what happened', 'what\'s happening', 'whats happening', 'what is the problem', 'what is going on', 'tell me what', 'nature of', 'describe what'] },
-  { id: 'duration',            keywords: ['when did', 'how long ago', 'how long has', 'time did this', 'when did this start', 'time frame', 'how long', 'just happen'] },
+  { id: 'nature',              keywords: ['what\'s going on', 'whats going on', 'what happened', 'what\'s happening', 'whats happening', 'what is the problem', 'what\'s the problem', 'whats the problem', 'what is going on', 'tell me what', 'nature of', 'describe what', 'what\'s the emergency', 'whats the emergency', 'what is the emergency', 'what is your emergency', 'what\'s your emergency', 'reason for your call', 'reason for the call', 'reason for calling', 'what can i help you with', 'how can i help', 'what do you need', 'what\'s the reason', 'whats the reason', 'why are you calling', 'what are you reporting', 'what would you like to report', 'what\'s the situation', 'whats the situation', 'what are we dealing with', 'what are we looking at', 'what\'s the call', 'whats the call'] },
+  { id: 'duration',            keywords: ['when did', 'how long ago', 'how long has', 'time did this', 'when did this start', 'time frame', 'how long', 'just happen', 'just occur', 'did this just', 'how recently', 'how recent', 'when was this', 'when was the last', 'is this happening now', 'happening right now', 'currently happening', 'is this going on right now', 'is this still going', 'going on right now', 'in progress or', 'just now'] },
   // Suspects / persons
-  { id: 'suspect_count',       keywords: ['how many people', 'how many suspects', 'how many of them', 'how many guys', 'number of suspects', 'just one'] },
-  { id: 'suspect_description', keywords: ['what does he look', 'what do they look', 'description of', 'describe him', 'describe them', 'describe the suspect', 'what is he wearing', 'what are they wearing', 'what\'s he wearing', 'clothing', 'race', 'height', 'age of the'] },
-  { id: 'suspect_location',    keywords: ['where is he', 'where is the suspect', 'where are they', 'still on scene', 'is he still', 'are they still', 'is the suspect still'] },
-  { id: 'direction_of_travel', keywords: ['direction', 'which way', 'fled', 'ran', 'left in', 'going north', 'going south', 'going east', 'going west', 'where did they go', 'where did he go'] },
-  { id: 'subject_names',       keywords: ['do you know their name', 'their names', 'do you know them', 'do you know who they are', 'do you know the neighbor', 'know the neighbors', 'what are their names', 'what is their name', 'know who he is', 'know who she is', 'do you know the suspect', 'know the people', 'who are they', 'do you know the parties', 'name of the people', 'names of the people', 'identify them'] },
+  { id: 'suspect_count',       keywords: ['how many people', 'how many suspects', 'how many of them', 'how many guys', 'how many are there', 'how many were there', 'number of suspects', 'number of people', 'just one', 'one person or', 'more than one', 'how many involved', 'how many were involved', 'how many people involved', 'how many subjects'] },
+  { id: 'suspect_description', keywords: ['what does he look', 'what does she look', 'what do they look', 'what\'s he look', 'whats he look', 'what\'s she look', 'what did he look', 'what did she look', 'what did the guy look', 'what did the man look', 'what did the woman look', 'what did the suspect look', 'how was he dressed', 'how was she dressed', 'how were they dressed', 'description of', 'give me a description', 'can you describe him', 'can you describe her', 'can you describe them', 'can you describe the suspect', 'can you describe the guy', 'can you describe the man', 'can you describe the woman', 'describe him', 'describe her', 'describe them', 'describe the suspect', 'describe the subject', 'describe the guy', 'describe the man', 'describe the woman', 'what is he wearing', 'what are they wearing', 'what\'s he wearing', 'whats he wearing', 'what was he wearing', 'what was she wearing', 'what were they wearing', 'what\'s she wearing', 'clothing', 'what color shirt', 'how is he dressed', 'race', 'height', 'how tall', 'build', 'age of the', 'how old is the suspect', 'hair color', 'any tattoos', 'distinguishing'] },
+  { id: 'suspect_location',    keywords: ['where is he', 'where\'s he', 'wheres he', 'where is she', 'where\'s she', 'where is the suspect', 'where\'s the suspect', 'where are they', 'where\'re they', 'still on scene', 'is he still there', 'is she still there', 'is he still', 'are they still', 'is the suspect still', 'is he still on scene', 'is she still on scene', 'are they still on scene', 'is the suspect on scene', 'where is he now', 'where\'s he now', 'wheres he now', 'where\'s the guy', 'wheres the guy', 'where\'s the man', 'where is the guy', 'where is the man', 'where\'s the subject', 'where is the subject', 'is he nearby', 'are they nearby', 'is he around', 'where is he located'] },
+  { id: 'direction_of_travel', keywords: ['direction', 'which way', 'what way did', 'fled', 'ran', 'run off', 'took off', 'left in', 'leave the scene', 'did they leave', 'did he leave', 'did she leave', 'have they left', 'has he left', 'going north', 'going south', 'going east', 'going west', 'headed', 'where did they go', 'where did he go', 'where\'d they go', 'whered they go', 'where\'d he go', 'where\'d he take off', 'whered he take off', 'take off to', 'which direction did', 'did the suspect flee', 'did he flee', 'did they flee', 'last seen heading', 'last known direction', 'mode of travel'] },
+  { id: 'subject_names',       keywords: ['do you know their name', 'their names', 'do you know them', 'do you know who they are', 'do you know who did', 'know who did this', 'do you know the neighbor', 'know the neighbors', 'what are their names', 'what is their name', 'know who he is', 'know who she is', 'know who the suspect', 'do you know the suspect', 'suspect\'s name', 'subject\'s name', 'know the people', 'who are they', 'do you know the parties', 'name of the people', 'names of the people', 'name of the suspect', 'name of the subject', 'identify them', 'identify the suspect', 'can you identify', 'any idea who', 'idea who that is', 'idea who did', 'know the person who', 'who the person is', 'do you recognize', 'happen to know who', 'know who this is', 'who this person is', 'who that person is'] },
   { id: 'parties_involved',    keywords: ['who is involved', 'who else is there', 'who is fighting', 'who is arguing', 'parties involved', 'is it a couple', 'related', 'relationship between them'] },
   // Officer safety
   { id: 'premise_hazard',      keywords: ['premise hazard', 'premise/hazard', 'premise and hazard', 'previous calls', 'history at this address', 'flags on the address', 'check the premise', 'check premise', 'any hazards at', 'premise check'] },
-  { id: 'weapon_type',         keywords: ['what type of weapon', 'what kind of weapon', 'type of weapon', 'what weapon'] },
-  { id: 'who_has_weapon',      keywords: ['who has the weapon', 'who has the gun', 'who is armed', 'who has it'] },
-  { id: 'weapon_activity',     keywords: ['doing with the weapon', 'doing with the gun', 'what is he doing with the', 'pointing the', 'waving the'] },
-  { id: 'suspect_armed',       keywords: ['is he armed', 'are they armed', 'does he have a weapon', 'does she have a weapon', 'do they have weapons', 'is the suspect armed'] },
+  { id: 'weapon_type',         keywords: ['what type of weapon', 'what kind of weapon', 'type of weapon', 'what weapon', 'what kind of gun', 'what type of gun', 'what kind of knife', 'handgun or rifle', 'pistol or', 'what sort of weapon', 'what kind of firearm', 'is it a handgun', 'is it a rifle', 'is it a knife'] },
+  { id: 'who_has_weapon',      keywords: ['who has the weapon', 'who has the gun', 'who\'s got the gun', 'whos got the gun', 'who\'s got the weapon', 'who has the knife', 'who is armed', 'who has it', 'who is holding', 'which one has the'] },
+  { id: 'weapon_activity',     keywords: ['doing with the weapon', 'doing with the gun', 'what is he doing with the', 'what\'s he doing with the', 'pointing the', 'pointing it', 'is he pointing', 'waving the', 'waving it', 'aiming', 'threatening anyone with', 'using the weapon'] },
+  { id: 'suspect_armed',       keywords: ['is he armed', 'are they armed', 'is she armed', 'does he have a weapon', 'does he have any weapon', 'does she have a weapon', 'does she have any weapon', 'do they have weapons', 'do they have any weapon', 'is the suspect armed', 'was he armed', 'were they armed', 'any weapons on him', 'does he have a gun', 'is he carrying'] },
   { id: 'caller_armed',        keywords: ['do you have a weapon', 'are you armed', 'do you have a gun'] },
   { id: 'weapons',             keywords: ['weapon', 'gun', 'knife', 'armed', 'firearm', 'pistol', 'rifle', 'any weapon'] },
   { id: 'physical_violence',   keywords: ['hitting', 'physical', 'getting hit', 'is anyone being hit', 'is it physical', 'punched', 'slapped', 'pushing'] },
@@ -8615,7 +8623,7 @@ const QUESTION_CATEGORIES = [
   { id: 'patient_age',         keywords: ['how old', 'age of the patient', 'patient\'s age', 'his age', 'her age'] },
   { id: 'patient_name',        keywords: ['patient\'s name', 'his name', 'her name', 'what is his name', 'what is her name', 'name of the patient', 'who is the patient'] },
   { id: 'chest_pain',          keywords: ['chest pain', 'chest hurt', 'pain in his chest', 'pain in her chest'] },
-  { id: 'pain_radiating',      keywords: ['pain spread', 'radiating', 'arm pain', 'jaw pain', 'pain in his arm', 'left arm'] },
+  { id: 'pain_radiating',      keywords: ['pain spread', 'radiating', 'arm pain', 'jaw pain', 'pain in his arm', 'pain go into', 'pain going into', 'pain travel', 'spread to his', 'spread to her', 'into his arm', 'into her arm', 'left arm', 'down his arm'] },
   { id: 'pale_sweating',       keywords: ['sweating', 'pale', 'clammy', 'color of his skin', 'how does he look', 'gray', 'cold sweat'] },
   { id: 'medical_history',     keywords: ['medical history', 'medical conditions', 'heart condition', 'diabetic', 'history of heart', 'pre-existing', 'medical problems'] },
   { id: 'medications',         keywords: ['medications', 'meds', 'taking any medicine', 'on any medication', 'prescription'] },
@@ -8624,22 +8632,22 @@ const QUESTION_CATEGORIES = [
   { id: 'number_of_patients',  keywords: ['how many patients', 'how many victims', 'how many people are hurt', 'how many injured'] },
   { id: 'cpr_instructions',    keywords: ['cpr', 'compressions', 'rescue breathing', 'do you know cpr'] },
   // Vehicles
-  { id: 'vehicle_info',        keywords: ['what kind of car', 'what kind of vehicle', 'make and model', 'license plate', 'tag number', 'plate number', 'color of the car', 'what does the car', 'describe the vehicle', 'describe the car'] },
+  { id: 'vehicle_info',        keywords: ['what kind of car', 'what kind of vehicle', 'what type of car', 'what type of vehicle', 'make and model', 'make of the', 'model of the', 'license plate', 'tag number', 'plate number', 'get a plate', 'get the plate', 'catch a plate', 'catch the plate', 'did you get a tag', 'color of the car', 'color of the vehicle', 'what color car', 'what color vehicle', 'what does the car', 'what does the vehicle', 'describe the vehicle', 'describe the car', 'what\'s he driving', 'whats he driving', 'what is he driving', 'what\'s she driving', 'what are they driving', 'what was he driving', 'what were they driving', 'what kind of truck'] },
   { id: 'vehicle_location_now',keywords: ['where is the car', 'where is the vehicle', 'is the car still', 'is the vehicle still'] },
   { id: 'vehicles',            keywords: ['any vehicles', 'cars involved', 'what cars', 'how many cars'] },
   // Scene specifics
   { id: 'cameras',             keywords: ['camera', 'surveillance', 'video', 'ring doorbell', 'security camera', 'cctv'] },
-  { id: 'witnesses',           keywords: ['witnesses', 'anyone else see', 'anyone else there', 'who saw', 'any witnesses'] },
-  { id: 'forced_entry',        keywords: ['forced entry', 'how did they get in', 'broken window', 'broken door', 'broken lock', 'damage to'] },
-  { id: 'items_stolen',        keywords: ['what was stolen', 'what was taken', 'what\'s missing', 'whats missing', 'items taken'] },
+  { id: 'witnesses',           keywords: ['witnesses', 'anyone else see', 'did anyone else see', 'anybody else see', 'did anyone see', 'did anybody see', 'anyone else there', 'anyone else witness', 'who saw', 'who else saw', 'any witnesses', 'were there witnesses'] },
+  { id: 'forced_entry',        keywords: ['forced entry', 'how did they get in', 'how\'d they get in', 'howd they get in', 'how did he get in', 'how\'d he get in', 'point of entry', 'broken window', 'broken door', 'broken lock', 'damage to', 'how did they enter', 'how were they able to get'] },
+  { id: 'items_stolen',        keywords: ['what was stolen', 'what was taken', 'what did they take', 'what did he take', 'what did she take', 'what\'d they take', 'whatd they take', 'what got taken', 'what got stolen', 'what\'s missing', 'whats missing', 'what is missing', 'items taken', 'items stolen', 'what property', 'anything stolen', 'anything taken', 'what did you lose', 'what\'s gone', 'end up taking', 'ended up taking', 'wind up taking', 'what all did they take'] },
   { id: 'value',               keywords: ['value of', 'how much is it worth', 'worth how much', 'dollar amount', 'how much was'] },
   { id: 'doors_locked',        keywords: ['door locked', 'doors locked', 'is the door locked', 'are the doors locked'] },
   { id: 'doors_unlocked',      keywords: ['can you unlock', 'unlock the door', 'leave the door open'] },
   { id: 'pets',                keywords: ['any pets', 'do you have a dog', 'animals in the house', 'cat or dog'] },
   { id: 'children_present',    keywords: ['any children', 'kids in the house', 'children there', 'any minors'] },
   // Caller safety
-  { id: 'caller_safety',       keywords: ['are you safe', 'are you in a safe', 'can you get out', 'can you leave', 'is it safe for you'] },
-  { id: 'caller_alone',        keywords: ['are you alone', 'anyone else with you', 'is anyone else home', 'who else is there with you'] },
+  { id: 'caller_safety',       keywords: ['are you safe', 'are you in a safe', 'can you get out', 'can you leave', 'can you get somewhere safe', 'get to a safe', 'get to safety', 'somewhere safe', 'is it safe for you', 'is it safe where you', 'are you in danger', 'are you okay where you', 'can you get away'] },
+  { id: 'caller_alone',        keywords: ['are you alone', 'anyone else with you', 'anyone there with you', 'is anyone there with you', 'is anyone else home', 'anybody with you', 'anybody else there', 'who else is there with you', 'are you by yourself', 'are you there by yourself', 'there by yourself', 'is anybody else with you', 'is someone with you', 'anyone else around', 'anyone else in the house', 'anybody else in the house', 'anyone else in the home', 'anyone in the house with you'] },
   { id: 'stay_on_line',        keywords: ['stay on the line', 'stay on the phone', 'don\'t hang up', 'keep me on'] },
   // Scene hazards
   { id: 'fire_hazard',         keywords: ['fire', 'smoke', 'burning', 'flames'] },
@@ -8649,11 +8657,11 @@ const QUESTION_CATEGORIES = [
   { id: 'airbags',             keywords: ['airbag', 'air bag'] },
   // --- Official manual question categories ---
   { id: 'supervisor_notify',   keywords: ['notify supervisor', 'notify a supervisor', 'notify my supervisor', 'tell my supervisor', 'let my supervisor', 'smspv', 'let a supervisor know', 'advise supervisor', 'notifying supervisor'] },
-  { id: 'impairment_behavior', keywords: ['impair', 'swerving', 'driving erratic', 'how is he driving', 'how are they driving', 'all over the road', 'high rate of speed', 'what behavior'] },
+  { id: 'impairment_behavior', keywords: ['impair', 'swerving', 'driving erratic', 'how is he driving', 'how is the driver', 'driver operating', 'operating the vehicle', 'how are they driving', 'all over the road', 'weaving', 'crossing the line', 'high rate of speed', 'what behavior', 'how fast'] },
   { id: 'advise_no_follow',    keywords: ['don\'t need to follow', 'do not follow', 'keep a safe distance', 'stop following', 'you don\'t have to follow'] },
   { id: 'complainant_vehicle', keywords: ['your vehicle', 'what are you driving', 'your car description', 'describe your vehicle', 'your vehicle description'] },
-  { id: 'contact_deputy',      keywords: ['want contact', 'speak with a deputy', 'contact with a deputy', 'contact with a d/s', 'want a deputy to call', 'want to be contacted'] },
-  { id: 'whats_suspicious',    keywords: ['what makes them suspicious', 'what is suspicious', 'why suspicious', 'what makes him suspicious', 'why do you think', 'what are they doing'] },
+  { id: 'contact_deputy',      keywords: ['want contact', 'speak with a deputy', 'contact with a deputy', 'contact with a d/s', 'want a deputy to call', 'want a deputy to contact', 'deputy to contact you', 'want to be contacted', 'would you like a deputy', 'would you like to speak with a deputy', 'want a callback from a deputy', 'deputy to give you a call', 'deputy give you a call', 'deputy to call you back', 'deputy call you back', 'give you a call back'] },
+  { id: 'whats_suspicious',    keywords: ['what makes them suspicious', 'what made them suspicious', 'what made them seem', 'makes them seem suspicious', 'what is suspicious', 'why suspicious', 'what makes him suspicious', 'what made him suspicious', 'why do you think', 'why are they suspicious', 'what seems suspicious', 'what are they doing'] },
   { id: 'suspect_vehicle',     keywords: ['suspect vehicle', 'their vehicle', 'the other vehicle', 'fleeing vehicle', 'striking vehicle', 'what were they driving'] },
   { id: 'roadblock',           keywords: ['roadblock', 'road blocked', 'blocking the road', 'lanes blocked', 'is the road blocked'] },
   { id: 'disturbance',         keywords: ['any disturbance', 'is there a disturbance', 'are they fighting', 'altercation'] },
@@ -8677,7 +8685,7 @@ const QUESTION_CATEGORIES = [
   { id: 'assistance_type',     keywords: ['what kind of assistance', 'what assistance', 'how can we help', 'what do you need help with', 'what type of assistance', 'what help do you need'] },
   { id: 'serial_number',       keywords: ['serial number', 'serial', 'model number', 'imei', 'permit number', 'permit'] },
   { id: 'alarm_zone',          keywords: ['which zone', 'what zone', 'where is the alarm coming', 'which door', 'point of alarm', 'zone is', 'what area of the'] },
-  { id: 'callback_attempt',    keywords: ['answer on callback', 'anyone answer', 'callback', 'call back', 'did you call the', 'reach anyone', 'response on the call'] },
+  { id: 'callback_attempt',    keywords: ['answer on callback', 'anyone answer', 'anybody answer', 'answer when the company', 'answer when you called', 'when the company called', 'callback', 'did you call the', 'reach anyone', 'response on the call', 'someone answer'] },
   { id: 'alarm_company',       keywords: ['alarm company', 'monitoring company', 'company name', 'operator number', 'who is the alarm'] },
   { id: 'license_plate',       keywords: ['license plate', 'plate number', 'tag number', 'what is the tag', 'plate and state', 'registration'] },
   { id: 'tag_swapped',         keywords: ['swapped', 'swap', 'switched out', 'replaced with another', 'different plate'] },
@@ -8694,6 +8702,57 @@ const QUESTION_CATEGORIES = [
 // Returns the category id, or null if no good match.
 function matchCallSimQuestion(text) {
   const t = ' ' + text.toLowerCase().replace(/[.,!?]/g, '') + ' ';
+
+  // ---- Name disambiguation (runs first) -------------------------------
+  // "Name" questions are ambiguous: they can be about the CALLER (your name),
+  // a SUSPECT/third party (his name, the suspect's name), or a PATIENT on a
+  // medical call. Resolve who the question is about before the generic match,
+  // so suspect/patient name questions never collapse into caller_name.
+  const aboutOrg = /(alarm company|monitoring company|company name|business name|name of the (company|business|store|agency|alarm))/.test(t);
+  const mentionsName = !aboutOrg && (/\bname\b/.test(t) || /\bnamed\b/.test(t) || /\bwho is (he|she|they|the)\b/.test(t) || /\bwho are they\b/.test(t));
+  if (mentionsName) {
+    const aboutCaller = /\byour\b/.test(t) || /\byou'?re\b/.test(t) || /who am i speaking|who'?s calling|whos calling|may i (have|get) your|calling from|reporting (party|person)/.test(t);
+    const aboutThirdParty = /\b(his|her|their|theyre|they'?re|the (suspect|subject|guy|man|woman|male|female|person|people|driver|other|neighbor|offender|perp)|suspect'?s|subject'?s|guy'?s|other party|that (guy|man|woman|person))\b/.test(t)
+      || /name of (the|that|this|him|her|them|whoever|the person|the people|the suspect|the subject)/.test(t)
+      || /do you (know|have) (a |the )?names?( for| of)?/.test(t)
+      || /(suspect|subject|offender|driver|attacker|intruder|prowler|shooter)/.test(t);
+    if (aboutCaller && !aboutThirdParty) return 'caller_name';
+    if (aboutThirdParty && !aboutCaller) {
+      // On a medical/injury call a third-party name is the PATIENT; otherwise
+      // it's the suspect/subject. Scenario context decides.
+      const sc = (typeof getActiveScenario === 'function') ? getActiveScenario() : null;
+      const isMedical = !!(sc && (sc.requiresEMS || /patient|medical|injur|sick|overdose|cardiac|unconscious|breathing|chest pain/i.test((sc.callClass||'') + ' ' + (sc.title||''))));
+      const patientCue = /\bpatient\b/.test(t) || (isMedical && /(his|her)\b/.test(t) && !/(suspect|subject|offender|attacker|intruder|prowler|shooter|guy who|man who|person who)/.test(t));
+      return patientCue ? 'patient_name' : 'subject_names';
+    }
+    // Ambiguous "what's the name" with no owner cue → fall through to keyword
+    // matching, which will land on caller_name only via an explicit phrase.
+  }
+  // ---- Weapon disambiguation (runs before keyword loop) ----------------
+  const hasW = (...ws) => ws.some(w => t.includes(' ' + w + ' ') || t.includes(' ' + w) || t.includes(w + ' '));
+  const weaponMentioned = hasW('weapon', 'weapons', 'gun', 'guns', 'knife', 'firearm', 'pistol', 'rifle', 'armed');
+  if (weaponMentioned) {
+    if (/\bwho\b[^.]*\b(has|got|holding|carrying|armed)\b/.test(t) || hasW('who has', 'who\'s got', 'whos got', 'who is armed', 'who\'s armed', 'whos armed', 'who is holding', 'who\'s holding', 'whos holding', 'which one has', 'which of them has', 'which one is armed')) return 'who_has_weapon';
+    if (hasW('what kind', 'what type', 'what sort', 'gun or a knife', 'gun or knife', 'knife or a gun', 'is it a gun', 'is it a knife', 'is it a handgun', 'is it a rifle')) return 'weapon_type';
+    if (hasW('doing with', 'pointing', 'waving', 'aiming', 'using the', 'threatening')) return 'weapon_activity';
+    if (hasW('do you have', 'are you armed', 'you got a')) return 'caller_armed';
+    if (hasW('does he', 'does she', 'do they', 'is he armed', 'is she armed', 'are they armed', 'is the guy armed', 'is the suspect armed', 'was he armed', 'were they armed', 'have a weapon', 'have any weapon', 'have a gun', 'carrying')) return 'suspect_armed';
+    // bare "any weapons?" / "are there weapons" → generic
+    return 'weapons';
+  }
+  // ---- Witnesses (beat 'nature' on 'see what happened') ----------------
+  if (/(anyone|anybody|someone|somebody|witness)\b[^.]*\b(see|saw|witness)/.test(t)) return 'witnesses';
+  // ---- Vehicle disambiguation ------------------------------------------
+  const drivingBehavior = hasW('how is he driving', 'how\'s he driving', 'how are they driving', 'how is she driving', 'how is the driver', 'driver operating', 'operating the vehicle', 'operating the car', 'driving erratic', 'driving like', 'how\'s the driving');
+  const vehMentioned = !drivingBehavior && hasW('vehicle', 'car', 'cars', 'truck', 'suv', 'van', 'plate', 'tag', 'license plate', 'driving', 'drive away', 'drove off', 'drove away');
+  if ((vehMentioned || hasW('plate', 'tag')) && hasW('swap', 'swapped', 'switched out', 'switched', 'replaced with', 'different plate', 'stolen plate', 'not the registered')) return 'tag_swapped';
+  if (vehMentioned && hasW('suspect', 'his', 'her', 'their', 'the guy', 'fleeing', 'driving', 'striking', 'what kind', 'what type', 'make', 'model', 'color', 'describe', 'plate', 'tag', 'license')) {
+    if (hasW('your', 'you driving', 'you in', 'your car', 'your vehicle')) return 'complainant_vehicle';
+    if (hasW('is the car still', 'is the vehicle still', 'where is the car', 'where is the vehicle', 'car still there', 'vehicle still there')) return 'vehicle_location_now';
+    return 'vehicle_info';
+  }
+  // ---------------------------------------------------------------------
+
   for (const cat of QUESTION_CATEGORIES) {
     for (const kw of cat.keywords) {
       if (t.includes(' ' + kw + ' ') || t.includes(' ' + kw) || t.includes(kw + ' ')) {
@@ -8703,20 +8762,47 @@ function matchCallSimQuestion(text) {
   }
   // Fallback: strong single words that almost always mean one thing.
   // Only reached if no multi-word phrase matched above.
+
+  // First, disambiguate the high-collision topics (weapons, vehicles) using
+  // the QUESTION word, so "who has the gun" / "what kind of gun" / "what's he
+  // driving" route to the specific category instead of the generic bucket.
+  const has = (...ws) => ws.some(w => t.includes(' ' + w + ' ') || t.includes(' ' + w));
+  const weaponWord = has('weapon', 'weapons', 'gun', 'guns', 'knife', 'firearm', 'pistol', 'rifle', 'armed');
+  if (weaponWord) {
+    if (has('who', 'which one', 'which of them')) return 'who_has_weapon';
+    if (has('what kind', 'what type', 'what sort', 'gun or', 'knife or', 'or a knife', 'or a gun')) return 'weapon_type';
+    if (has('doing with', 'pointing', 'waving', 'aiming', 'using')) return 'weapon_activity';
+    if (has('does he', 'does she', 'do they', 'is he', 'is she', 'are they', 'is the suspect', 'was he', 'were they', 'have a', 'have any', 'carrying')) return 'suspect_armed';
+    if (has('do you have', 'are you', 'you got')) return 'caller_armed';
+    return 'weapons';
+  }
+  const vehicleWord = has('vehicle', 'car', 'cars', 'truck', 'suv', 'van', 'plate', 'tag', 'license');
+  if (vehicleWord) {
+    if (has('your', 'you driving', 'you in')) return 'complainant_vehicle';
+    if (has('still', 'where is the car', 'where is the vehicle')) return 'vehicle_location_now';
+    return 'vehicle_info';
+  }
+  // 'suspect'/'subject' alone: a name question already handled above; a location
+  // cue → suspect_location; otherwise it's a description ask.
+  if (has('suspect', 'suspects', 'subject', 'the guy', 'the man', 'the woman', 'the person')) {
+    if (has('where', 'still there', 'still on', 'nearby', 'in the area', 'around')) return 'suspect_location';
+    if (has('which way', 'direction', 'flee', 'fled', 'run', 'ran', 'go', 'went', 'leave', 'left', 'headed', 'take off')) return 'direction_of_travel';
+    if (has('how many', 'number of')) return 'suspect_count';
+    return 'suspect_description';
+  }
+
   const singleWordMap = [
-    [['address', 'location'], 'location'],
+    [['address', 'location', 'located'], 'location'],
+    // 'name' alone → caller, but only if not about a third party (handled above)
     [['name'], 'caller_name'],
     [['callback', 'phone', 'number', 'telephone'], 'caller_callback'],
-    [['weapon', 'weapons', 'gun', 'armed', 'knife'], 'weapons'],
     [['breathing', 'breathe'], 'breathing'],
-    [['conscious', 'awake', 'responsive'], 'patient_conscious'],
-    [['injured', 'injuries', 'hurt'], 'injuries'],
-    [['suspect', 'suspects'], 'suspect_description'],
-    [['vehicle', 'car', 'plate', 'tag'], 'vehicle_info'],
-    [['ambulance', 'paramedics', 'ems', 'fire', 'medics', 'rescue'], 'conference_ems'],
+    [['conscious', 'awake', 'responsive', 'alert'], 'patient_conscious'],
+    [['injured', 'injuries', 'hurt', 'wounded'], 'injuries'],
+    [['ambulance', 'paramedics', 'ems', 'medics', 'rescue'], 'conference_ems'],
     [['witnesses', 'witness'], 'witnesses'],
-    [['camera', 'cameras', 'video'], 'cameras'],
-    [['age', 'old'], 'patient_age'],
+    [['camera', 'cameras', 'surveillance', 'video'], 'cameras'],
+    [['age'], 'patient_age'],
   ];
   for (const [words, catId] of singleWordMap) {
     for (const w of words) {
@@ -8728,13 +8814,26 @@ function matchCallSimQuestion(text) {
 
 // Generate a response from the scenario for a given question category.
 // Rotates through possible answers so repeat questions don't always give the same line.
+// Some questions can be satisfied by a related answer key the scenario already
+// has. A "what kind of vehicle?" (vehicle_info) is answered by suspect_vehicle,
+// complainant_vehicle, vehicles, or license_plate if those are present.
+const ANSWER_KEY_FALLBACKS = {
+  vehicle_info: ['vehicle_info', 'suspect_vehicle', 'complainant_vehicle', 'vehicles', 'license_plate'],
+  license_plate: ['license_plate', 'suspect_vehicle', 'vehicle_info'],
+  vehicles: ['vehicles', 'vehicle_info', 'suspect_vehicle', 'complainant_vehicle'],
+};
+
 function getCallSimResponse(scenario, categoryId) {
-  // 1. Scenario has a specific answer for this category — use it (rotate variants)
-  if (scenario.answers[categoryId] && scenario.answers[categoryId].length > 0) {
-    const options = scenario.answers[categoryId];
-    const askedCount = (state.callSim?.categoriesAsked?.[categoryId] || 0);
-    const line = options[Math.max(0, askedCount - 1) % options.length];
-    return { line, category: categoryId, isUnknown: false };
+  // 1. Scenario has a specific answer for this category — use it (rotate variants).
+  //    For a few categories, fall back to a related key the scenario does have.
+  const keys = ANSWER_KEY_FALLBACKS[categoryId] || [categoryId];
+  for (const k of keys) {
+    if (scenario.answers[k] && scenario.answers[k].length > 0) {
+      const options = scenario.answers[k];
+      const askedCount = (state.callSim?.categoriesAsked?.[categoryId] || 0);
+      const line = options[Math.max(0, askedCount - 1) % options.length];
+      return { line, category: categoryId, isUnknown: false };
+    }
   }
   // 2. Explicitly listed as something this caller doesn't know
   if ((scenario.unknowns || []).includes(categoryId)) {
@@ -9517,6 +9616,12 @@ const recognizer = {
     this._finalTranscript = '';
     this._manualStop = false;
     let settled = false;
+    let resultEmitted = false;
+    const emitResult = (payload) => {
+      if (resultEmitted) return;   // never deliver a second result for one session
+      resultEmitted = true;
+      if (onResult) onResult(payload);
+    };
 
     rec.onresult = (e) => {
       let interim = '';
@@ -9552,10 +9657,10 @@ const recognizer = {
       settled = true;
       const finalText = this._finalTranscript.trim();
       if (finalText) {
-        if (onResult) onResult([finalText]);
+        emitResult([finalText]);
       } else if (this._manualStop) {
         // User stopped but we got nothing
-        if (onResult) onResult(['']);
+        emitResult(['']);
       } else {
         if (onEnd) onEnd();
       }
@@ -11574,13 +11679,18 @@ function speakCallerLine(text) {
 // Voice input — start listening for the dispatcher's spoken question
 function callSimToggleMic() {
   if (state.callSim.listening) {
-    // Second tap = finish and transcribe what was captured
+    // Second tap = finish and transcribe what was captured. Guard so a held
+    // key or a rapid double-tap can't queue two finish() calls (which is what
+    // caused the same utterance to send multiple times).
+    if (state.callSim._micFinishing) return;
+    state.callSim._micFinishing = true;
     showCallSimMicStatus('Processing…');
     recognizer.finish();
     state.callSim.listening = false;
     updateMicButtonUI();
     return;
   }
+  if (state.callSim._micFinishing) return;
   if (!recognizer.available) {
     showCallSimMicStatus(recognizerErrorMessage('unsupported'));
     return;
@@ -11599,6 +11709,7 @@ function callSimToggleMic() {
     onResult: (alternatives) => {
       const text = (alternatives[0] || '').trim();
       state.callSim.listening = false;
+      state.callSim._micFinishing = false;
       updateMicButtonUI();
       if (text) {
         // Auto-send the recognized speech immediately (no need to tap Ask)
@@ -11612,10 +11723,12 @@ function callSimToggleMic() {
     },
     onError: (reason) => {
       state.callSim.listening = false;
+      state.callSim._micFinishing = false;
       updateMicButtonUI();
       showCallSimMicStatus(recognizerErrorMessage(reason));
     },
     onEnd: () => {
+      state.callSim._micFinishing = false;
       if (state.callSim.listening) {
         state.callSim.listening = false;
         updateMicButtonUI();
@@ -11927,10 +12040,32 @@ function gradeCallSimEntities(scenario, cad) {
 }
 
 // CAD field matchers — lenient, since the trainee types from a spoken conversation.
+// Strip a leading "S/" (or "S") so the trainee can type just the number.
+function stripSignalPrefix(code) {
+  return (code || '').replace(/^S\s*\/?\s*/i, '');
+}
+// Resolve a typed Incid Type ("41b", "s/41B", "41 B") to its canonical signal
+// code by matching against the known signal cards. Returns the canonical code
+// (e.g. "S/41B") if found, otherwise the trimmed input as-is.
+function resolveSignalCode(entered) {
+  const raw = (entered || '').trim();
+  if (!raw) return '';
+  const norm = s => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const target = norm(raw);
+  const cards = (typeof ALL_CARDS !== 'undefined' && ALL_CARDS.signals) || [];
+  // Exact match on the bare (prefix-stripped) code, or on the full code.
+  for (const c of cards) {
+    if (norm(stripSignalPrefix(c.code)) === target || norm(c.code) === target) return c.code;
+  }
+  return raw;
+}
 function cadSignalMatch(entered, correct) {
   if (!entered) return false;
   const norm = s => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  return norm(entered) === norm(correct);
+  // Accept the typed value with or without the S/ prefix on either side.
+  const e = norm(stripSignalPrefix(entered)) || norm(entered);
+  const c = norm(stripSignalPrefix(correct)) || norm(correct);
+  return e === c || norm(entered) === norm(correct);
 }
 function cadNumberMatch(entered, correct) {
   if (!entered) return false;
@@ -12219,14 +12354,16 @@ function renderCallSimCall() {
   const micAvailable = recognizer.available;
   const cad = state.callSim.cad;
 
-  // Incident Type dropdown = signals (the call class). Mod Circum = modifiers.
+  // Incident Type / Mod Circum are TYPE-ABLE: type the bare number ("41B") and
+  // it resolves to the signal (S/41B). A datalist offers live suggestions; the
+  // value shown strips the "S/" so you can just type digits.
   const signalCards = ALL_CARDS.signals || [];
-  const incidOptions = ['<option value="">— select —</option>']
-    .concat(signalCards.map(c => `<option value="${escapeHtml(c.code)}" ${cad.incidType === c.code ? 'selected' : ''}>${escapeHtml(c.code)} — ${escapeHtml(c.meaning)}</option>`))
+  const incidOptions = signalCards
+    .map(c => `<option value="${escapeHtml(stripSignalPrefix(c.code))}">${escapeHtml(c.code)} — ${escapeHtml(c.meaning)}</option>`)
     .join('');
   const modCards = ALL_CARDS.modifiers || [];
-  const modOptions = ['<option value="">— none —</option>']
-    .concat(modCards.map(c => `<option value="${escapeHtml(c.code)}" ${cad.modCircum === c.code ? 'selected' : ''}>${escapeHtml(c.code)} — ${escapeHtml(c.meaning)}</option>`))
+  const modOptions = modCards
+    .map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.meaning)}</option>`)
     .join('');
   const priorityOptions = ['<option value="">—</option>']
     .concat(['1','2','3','4','5'].map(p => `<option value="${p}" ${cad.priority === p ? 'selected' : ''}>${p}</option>`))
@@ -12275,7 +12412,7 @@ function renderCallSimCall() {
             <div class="callsim-input-area">
               <div class="callsim-input-row">
                 ${micAvailable ? `
-                  <button class="callsim-mic-btn ${state.callSim.listening ? 'listening' : ''}" data-action="callsim-toggle-mic" title="Speak your question">
+                  <button class="callsim-mic-btn ${state.callSim.listening ? 'listening' : ''}" data-action="callsim-toggle-mic" title="Speak your question — or press Left Ctrl to start, Left Ctrl again to send">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -12292,7 +12429,7 @@ function renderCallSimCall() {
               <div id="callsim-mic-status" style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: ${micAvailable && !recognizer.isReliableBrowser ? 'var(--amber)' : 'var(--text-muted)'}; min-height: 14px;">${
                 micAvailable && !recognizer.isReliableBrowser
                   ? 'Voice input is only reliable in Google Chrome. In this browser it may not capture — use the text box, or open the app in Chrome.'
-                  : ''
+                  : 'Shortcut: press Left Ctrl to open the mic, Left Ctrl again to send.'
               }</div>
               <div class="callsim-options">
                 ${state.callSim.mode === 'co1' ? `
@@ -12361,8 +12498,8 @@ function renderCallSimCall() {
 
                 <div class="cad-group-label mono">Incident</div>
                 <div class="cad-field-wrap">
-                  <div class="cad-row"><label>Incid Type</label><select data-cad="incidType" class="cad-select">${incidOptions}</select></div>
-                  <div class="cad-row"><label>Mod Circum</label><select data-cad="modCircum" class="cad-select">${modOptions}</select></div>
+                  <div class="cad-row"><label>Incid Type</label><input type="text" data-cad="incidType" class="cad-input cad-signal-input" list="cad-incid-list" value="${escapeHtml(stripSignalPrefix(cad.incidType))}" placeholder="type the number, e.g. 41B" autocomplete="off" autocapitalize="characters"><datalist id="cad-incid-list">${incidOptions}</datalist></div>
+                  <div class="cad-row"><label>Mod Circum</label><input type="text" data-cad="modCircum" class="cad-input cad-signal-input" list="cad-mod-list" value="${escapeHtml(cad.modCircum || '')}" placeholder="IP / JOC / -0…" autocomplete="off" autocapitalize="characters"><datalist id="cad-mod-list">${modOptions}</datalist></div>
                   <div class="cad-row"><label>Priority</label><select data-cad="priority" class="cad-select cad-priority">${priorityOptions}</select></div>
                   <div class="cad-row"><label>Comments</label><textarea data-cad="comments" rows="4" placeholder="Narrative / comments…">${escapeHtml(cad.comments)}</textarea></div>
                 </div>
@@ -14167,6 +14304,19 @@ function attachHandlers() {
       field.addEventListener(evt, e => {
         state.callSim.cad[key] = e.target.value;
       });
+      // Incid Type: resolve the typed number ("41b") to the canonical signal
+      // code ("S/41B") when the field loses focus or a datalist item is picked,
+      // so grading and the compound-signal display stay correct.
+      if (key === 'incidType') {
+        const resolve = () => {
+          const resolved = resolveSignalCode(field.value);
+          state.callSim.cad.incidType = resolved;
+          // Show the bare (prefix-stripped) form back to the user.
+          field.value = stripSignalPrefix(resolved);
+        };
+        field.addEventListener('change', resolve);
+        field.addEventListener('blur', resolve);
+      }
     });
 
     // Reporting-party (Person 1) descriptor fields — name/phone use data-cad
@@ -14420,10 +14570,17 @@ function handleAction(e) {
       break;
 
     case 'callsim-send': {
+      // If the mic is still open, finishing it will auto-send the captured
+      // speech — don't ALSO send the textbox (that double-sends the question).
+      if (state.callSim && state.callSim.listening) {
+        callSimToggleMic();
+        break;
+      }
       const input = document.getElementById('callsim-input');
       if (input) {
-        sendCallSimQuestion(input.value);
+        const v = input.value;
         input.value = '';
+        sendCallSimQuestion(v);
       }
       break;
     }
@@ -14900,6 +15057,22 @@ function submitTyped() {
 /* ============================================================
    KEYBOARD SHORTCUTS
    ============================================================ */
+
+// Call-sim mic shortcut: Left Ctrl opens the mic, Left Ctrl again sends.
+// Uses key location so the RIGHT Ctrl is free for normal use, and ignores the
+// chord case (Ctrl held with another key, e.g. Ctrl+C) so copy/paste still work.
+document.addEventListener('keydown', e => {
+  if (state.view !== 'callsim-call') return;
+  if (!state.callSim || !state.callSim.started || state.callSim.ended) return;
+  if (!recognizer.available) return;
+  // Only a bare LEFT Ctrl press — not Ctrl used as a modifier for another key.
+  if (e.key !== 'Control') return;
+  if (e.location !== KeyboardEvent.DOM_KEY_LOCATION_LEFT) return;
+  if (e.repeat) return;          // ignore auto-repeat while held
+  if (e.shiftKey || e.altKey || e.metaKey) return;
+  e.preventDefault();
+  callSimToggleMic();
+}, true);
 
 document.addEventListener('keydown', e => {
   if (state.view !== 'study' && state.view !== 'daily') return;
