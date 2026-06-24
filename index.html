@@ -1864,7 +1864,83 @@
   .callsim-debrief-score.fail { color: var(--red); }
 
   /* CO1 / 911 grading-mode toggle */
-  .callsim-mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 14px 0 6px; }
+.callsim-mode-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 14px 0 6px; }
+
+  /* ===== Dictation drill ===== */
+  .dictation { padding: 32px 0 80px; }
+  .dict-container { max-width: 720px; }
+  .dict-setup-label, .dict-results-label, .dict-setup-section .dict-setup-heading { letter-spacing: 0.14em; font-size: 11px; color: var(--amber); }
+  .dict-setup h1 { font-size: 34px; margin: 10px 0 12px; line-height: 1.1; }
+  .dict-setup p { color: var(--text-muted); line-height: 1.6; max-width: 600px; margin-bottom: 26px; }
+  .dict-setup-section { margin-bottom: 22px; }
+  .dict-setup-heading { margin-bottom: 10px; }
+  .dict-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dict-chip { padding: 9px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--text-muted); font-size: 13px; cursor: pointer; transition: all 0.12s; }
+  .dict-chip:hover { border-color: var(--amber); color: var(--text); }
+  .dict-chip.active { background: var(--amber); color: #1a1205; border-color: var(--amber); font-weight: 600; }
+  .dict-btn { padding: 12px 22px; border: none; border-radius: 8px; font-size: 13px; letter-spacing: 0.04em; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .dict-btn.primary { background: var(--amber); color: #1a1205; }
+  .dict-btn.primary.big { padding: 15px 30px; font-size: 14px; margin-top: 8px; }
+  .dict-btn.ghost { background: var(--surface-3); color: var(--text); }
+  .dict-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .dict-note { color: var(--text-muted); font-size: 12px; margin-top: 12px; }
+  .dict-best { color: var(--text-muted); font-size: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .dict-back { display: block; margin-top: 22px; background: none; border: none; color: var(--text-muted); font-size: 11px; letter-spacing: 0.1em; cursor: pointer; padding: 0; }
+  .dict-back:hover { color: var(--text); }
+
+  .dict-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 22px; }
+  .dict-timer { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+  .dict-timer.low { color: var(--red); }
+  .dict-stats { font-size: 13px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .dict-stats b { color: var(--text); }
+  .dict-stat-div { opacity: 0.4; }
+  .dict-quit { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 11px; letter-spacing: 0.1em; padding: 6px 12px; cursor: pointer; }
+  .dict-quit:hover { border-color: var(--red); color: var(--red); }
+
+  .dict-stage { text-align: center; padding: 14px 0 6px; }
+  .dict-kind { font-size: 12px; letter-spacing: 0.1em; color: var(--amber); text-transform: uppercase; margin-bottom: 6px; }
+  .dict-phase { font-size: 13px; color: var(--text-muted); height: 18px; margin-bottom: 16px; }
+  .dict-phase.speaking { color: var(--blue); }
+  .dict-input-wrap { margin-bottom: 16px; }
+  .dict-input { width: 100%; max-width: 460px; text-align: center; font-size: 26px; letter-spacing: 0.06em; padding: 16px 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--surface-2); color: var(--text); outline: none; transition: border-color 0.12s; }
+  .dict-input:focus { border-color: var(--amber); }
+  .dict-input:disabled { opacity: 0.7; }
+  .dict-feedback { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 6px auto 14px; max-width: 460px; padding: 12px 16px; border-radius: 10px; }
+  .dict-feedback.correct { background: rgba(74, 222, 128, 0.12); }
+  .dict-feedback.wrong { background: rgba(248, 113, 113, 0.12); }
+  .dict-feedback-icon { font-size: 24px; }
+  .dict-feedback.correct .dict-feedback-icon { color: var(--green); }
+  .dict-feedback.wrong .dict-feedback-icon { color: var(--red); }
+  .dict-fb-line { font-size: 20px; letter-spacing: 0.05em; }
+  .dict-fb-correct { color: var(--green); }
+  .dict-fb-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .dict-actions { display: flex; gap: 10px; justify-content: center; margin-top: 4px; }
+  .dict-history { margin-top: 30px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .dict-history-label { font-size: 10px; letter-spacing: 0.14em; color: var(--text-muted); margin-bottom: 8px; }
+  .dict-hist-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 13px; }
+  .dict-hist-mark { width: 16px; text-align: center; }
+  .dict-hist-row.ok .dict-hist-mark { color: var(--green); }
+  .dict-hist-row.no .dict-hist-mark { color: var(--red); }
+  .dict-hist-ans { color: var(--text); letter-spacing: 0.03em; }
+  .dict-hist-typed { color: var(--text-muted); text-decoration: line-through; opacity: 0.7; margin-left: auto; }
+
+  .dict-results { text-align: center; padding: 20px 0; }
+  .dict-results-score { font-size: 64px; font-weight: 800; line-height: 1; margin: 8px 0; }
+  .dict-results-score.pass { color: var(--green); }
+  .dict-results-score.partial { color: var(--amber); }
+  .dict-results-score.fail { color: var(--red); }
+  .dict-results-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+  .dict-results-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 auto 22px; max-width: 520px; }
+  .dict-rstat { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 8px; }
+  .dict-rstat-label { font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+  .dict-rstat-val { font-size: 24px; font-weight: 700; color: var(--text); }
+  .dict-rstat-unit { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+  .dict-results-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  @media (max-width: 560px) {
+    .dict-results-grid { grid-template-columns: repeat(2, 1fr); }
+    .dict-input { font-size: 22px; }
+    .dict-stats { font-size: 12px; }
+  }
   .callsim-mode-toggle button { padding: 9px 16px; font-size: 11px; letter-spacing: 0.06em; background: transparent; color: var(--text-muted); border: none; cursor: pointer; }
   .callsim-mode-toggle button.active { background: var(--green); color: #0a0f0a; font-weight: 700; }
   .callsim-mode-toggle button.active.is911 { background: var(--red); color: #fff; }
@@ -3939,7 +4015,7 @@
    confirm GitHub Pages has served the new version (it caches).
    Format: v MAJOR.MINOR — YYYY-MM-DD
    ============================================================ */
-const APP_VERSION = 'v4.3 — 2026-06-15';
+const APP_VERSION = 'v4.6 — 2026-06-16';
 
 /* ============================================================
    DATA — PBSO Dispatch Signals & Codes
@@ -6252,9 +6328,9 @@ const CALL_SCENARIOS = [
 
   {
     id: 's68_police_service',
-    title: 'Police Service — Civil Standby for Property',
-    callClassKey: 'S/68',
-    signal: 'S/68',
+    title: 'Domestic — Civil Standby to Retrieve Property',
+    callClassKey: 'S/38',
+    signal: 'S/38',
     difficulty: 'easy',
     caller: {
       name: 'Nicole Abara',
@@ -6270,35 +6346,47 @@ const CALL_SCENARIOS = [
       callerLocation: "I'm calling from my car, parked down the street from the house.",
     },
     problem: {
-      summary: 'Police service call — civil standby to keep the peace during a property retrieval. No crime in progress, no weapons, no disturbance currently.',
+      summary: 'Civil standby between former partners to retrieve belongings. Classified S/38 Domestic on the relationship alone. No crime in progress, no weapons, no disturbance currently — but the domestic relationship sets the signal and the priority.',
       duration: 'N/A — planned standby',
       escalation: 'None currently; preventive',
     },
     requiresEMS: false,
-    callClass: 'S/68 Police Service Call — a civil standby. Not a criminal/civil investigation or accident; assistance is to keep the peace during a property pickup.',
+    expectedEntities: {
+      persons: [
+        { label: 'The ex-boyfriend (other party to the domestic)', role: 'Subject', keyFields: ['first', 'last', 'race', 'sex'], detail: 'Brandon Cole — white male, 30s. The other party in the domestic; enter separately from the caller. Do NOT disclose to him that she called.' },
+      ],
+      vehicles: [
+        { label: "The ex's vehicle", keyFields: ['make', 'color'], detail: 'Black Dodge Charger' },
+        { label: "The caller's vehicle", keyFields: ['make', 'color'], detail: 'White Hyundai Elantra, Florida tag' },
+      ],
+    },
+    callClass: 'S/38 Domestic — PBSO classifies a call as a Domestic based on the RELATIONSHIP (spouses, former partners, people who live/lived together, or who share a child), not on whether a fight is underway. A standby to retrieve property between ex-partners is therefore a Domestic, and domestic response is never canceled. NEVER reveal to either party that the other called or where they are.',
     officerSafety: ['weapons'],
-    priorityChecklist: ['location', 'caller_info', 'nature', 'assistance_type'],
+    priorityChecklist: ['location', 'caller_info', 'weapons', 'physical_violence', 'parties_involved', 'caller_safety', 'suspect_description'],
     answers: {
       subject_names: ["My ex's name is Brandon Cole. It's his apartment I'm going to. We're not on great terms but I don't expect trouble.", "Brandon Cole — that's my ex. I just want a deputy there while I grab my things."],
       vehicle_info: ["My ex drives a black Dodge Charger — I don't know the plate. I'll be in my own car, a white Hyundai Elantra, Florida tag.", "He's got a black Charger. I'll be in a white Elantra. No trouble expected, I just want a deputy there."],
       location: ["560 Foresteria Drive, Lake Worth Beach. It's a single-family house.", "560 Foresteria Drive."],
       city: ["Lake Worth Beach."],
       landmark: ["Foresteria Drive, the single-family homes.", "Foresteria Drive."],
-      caller_name: ["Nicole Abara. A-B-A-R-A.", "Nicole Abara."],
+      caller_name: ["Nicole Abara.", "Nicole Abara, last name A-B-A-R-A."],
       caller_callback: ["561-555-0531."],
       caller_location: ["I'm in my car, parked a little down the street from the house. I haven't gone up yet.", "In my car down the street, waiting."],
       nature: ["I broke up with my ex and I need to get my clothes and some things from the house. I don't expect trouble but I'd feel safer with an officer there.", "I need to retrieve my belongings from my ex's house and want a standby."],
       assistance_type: ["Just a civil standby — an officer to be present while I grab my stuff so it stays peaceful. I have a key and I'm on the lease.", "A standby to keep the peace while I get my things."],
       weapons: ["No, no weapons. He's not violent, I just want to be cautious.", "No weapons. He's not dangerous, I'm just being careful."],
-      parties_involved: ["Just me and my ex, his name's Daniel. He might be home, might not.", "Me and my ex Daniel."],
+      physical_violence: ["No, nothing physical — there's no fight. This is just a precaution while I get my things.", "No violence at all, it's preventive."],
+      caller_safety: ["I'm fine, I'm waiting in my car down the street until a deputy can meet me.", "I'm safe in my car, I haven't gone up to the house yet."],
+      parties_involved: ["Just me and my ex-boyfriend, Brandon Cole. He may be home, may not. It's just the two of us.", "Me and my ex-boyfriend Brandon Cole."],
       relationship: ["He's my ex-boyfriend. We lived together, now I'm moving out.", "Ex-boyfriend, we lived together."],
+      protection_order: ["No, there's no restraining order or injunction. It's an amicable enough split, I just want a witness present.", "No order in place, this is just precautionary."],
       contact_deputy: ["Yes, that's what I'm asking for — someone to meet me here.", "Yes, I'd like an officer to meet me."],
       injuries: ["No, nobody's hurt, nothing's happened. This is just precautionary.", "No injuries, nothing's happened."],
       prior_history: ["No police history that I know of. He's never been violent, I just want a witness.", "No prior issues, just being safe."],
-      suspect_description: ["Daniel is a white male, 30s, brown hair, average build, about 5'11\".", "Daniel — white male, 30s, brown hair, average build."],
+      suspect_description: ["Brandon is a white male, 30s, brown hair, average build, about 5'11\".", "Brandon Cole — white male, 30s, brown hair, average build."],
     },
     unknowns: ['drugs_alcohol', 'vehicle_info'],
-    closingAdvice: "S/68 Police Service Call — a civil standby, one of the most common routine calls. There's no crime, so the questioning is light: where, what's needed, and the safety basics (weapons, parties, history). Confirm what assistance is actually being requested — here it's keeping the peace during a property pickup. Get the ex's description so the responding deputy knows who's who. Low priority unless something escalates on scene.",
+    closingAdvice: "S/38 Domestic — a good lesson in classification: even a calm, planned property pickup is a DOMESTIC because the parties are former partners. At PBSO the relationship drives the signal, not whether anyone is fighting yet, and domestics carry priority and are never canceled. Capture weapons (none here), verbal-vs-physical (neither — it's preventive), and the parties + relationship with names/DOB. Critically, never tell either party that the other called or disclose a location. Get the ex's description so the deputy knows who's who on arrival.",
   },
 
   {
@@ -6435,6 +6523,14 @@ const CALL_SCENARIOS = [
     requiresEMS: false,
     callClass: 'S/84 Welfare Check — a request to check on someone whose wellbeing is in question. If applicable, the call-taker contacts Fire Rescue to see if they responded to the residence.',
     officerSafety: [],
+    expectedEntities: {
+      persons: [
+        { label: 'The mother being checked on', role: 'Subject', keyFields: ['first', 'last', 'notes'], detail: "Eleanor Whitfield, 78, DOB 03/03/1948 — lives alone, heart condition. She is the SUBJECT, not the caller; enter her as a separate person." },
+      ],
+      vehicles: [
+        { label: "The subject's vehicle", keyFields: ['make', 'color'], detail: 'Older silver Buick sedan, should be at the residence' },
+      ],
+    },
     priorityChecklist: ['location', 'caller_info', 'caller_location', 'relationship', 'duration', 'subject_names'],
     answers: {
       nature: ["I can't reach my mother and I'm scared something's wrong. She lives alone, she's not answering her phone, and her neighbor says she's not coming to the door.", "I need someone to check on my mom. No one has been able to reach her and she lives by herself."],
@@ -7308,9 +7404,9 @@ const CALL_SCENARIOS = [
 
   {
     id: 's80_unwanted_guest',
-    title: 'Unwanted Guest — Ex Won\'t Leave',
-    callClassKey: 'S/80',
-    signal: 'S/80',
+    title: 'Domestic — Ex Won\'t Leave',
+    callClassKey: 'S/38',
+    signal: 'S/38',
     difficulty: 'easy',
     caller: {
       name: 'Carmen Delgado',
@@ -7326,20 +7422,20 @@ const CALL_SCENARIOS = [
       callerLocation: "I'm in my kitchen, he's in the living room.",
     },
     problem: {
-      summary: 'Unwanted guest (ex) refusing to leave. No weapons, no physical violence. Not a current domestic relationship in the household sense — he doesn\'t live there. A weapon would flip it to S/22-0.',
+      summary: 'Ex-boyfriend refusing to leave the caller\'s apartment. No weapons, no physical violence yet. Because the parties are former dating partners, PBSO classifies this as S/38 Domestic regardless of who the residence belongs to. A weapon would add the -0 (S/38-0).',
       duration: 'About 20 minutes',
       escalation: 'Verbal refusal, no violence yet',
     },
     requiresEMS: false,
-    callClass: 'S/80 Unwanted Guest — a person refusing to leave after being asked. A weapon would update it to S/22-0. May overlap with S/22 disturbance.',
+    callClass: 'S/38 Domestic — the parties are former dating partners, so the relationship makes it a Domestic even though he doesn\'t live there and it\'s only verbal so far. Domestic response is never canceled. A weapon → S/38-0 + supervisor; if it turned physical with injury → Fire Rescue. Never tell either party that the other called.',
     officerSafety: ['weapons', 'physical_violence'],
     expectedEntities: {
       persons: [
-        { label: 'The ex-boyfriend who won\'t leave', role: 'Suspect', keyFields: ['sex', 'race', 'clothing'], detail: 'Refusing to leave the caller\'s apartment' },
+        { label: 'The ex-boyfriend (other party to the domestic)', role: 'Subject', keyFields: ['first', 'last', 'sex', 'race'], detail: 'Eddie Morales — refusing to leave the caller\'s apartment. Other party in the domestic; do not disclose to him that she called.' },
       ],
       vehicles: [],
     },
-    priorityChecklist: ['location', 'caller_info', 'weapons', 'physical_violence', 'suspect_description', 'suspect_location'],
+    priorityChecklist: ['location', 'caller_info', 'weapons', 'physical_violence', 'parties_involved', 'caller_safety', 'suspect_description'],
     answers: {
       location: ["3390 Lakeview Circle, apartment 5, Lake Worth Beach — Lakeview condos.", "Lakeview condos, 3390 Lakeview Circle, apt 5."],
       city: ["Lake Worth Beach."],
@@ -7351,13 +7447,15 @@ const CALL_SCENARIOS = [
       physical_violence: ["No, he hasn't touched me. There's no fighting, he's just refusing to leave.", "No violence, just refusing to leave."],
       suspect_description: ["He's a Hispanic male, late 20s, short hair, white t-shirt and jeans. His name's Eddie.", "Hispanic male, late 20s, white t-shirt, jeans — Eddie."],
       suspect_location: ["He's sitting on the couch in my living room. I'm in the kitchen.", "On the couch in the living room."],
+      parties_involved: ["It's me and my ex-boyfriend, Eddie Morales. Just the two of us here.", "Me and my ex, Eddie Morales."],
+      caller_safety: ["I'm okay, I'm staying in the kitchen away from him. I can step outside if I need to.", "I'm safe, keeping my distance in the kitchen."],
       subject_names: ["His name is Eddie Morales. He's my ex.", "Eddie Morales, my ex."],
       relationship: ["He's my ex-boyfriend. We dated but he never lived here, this is my place.", "Ex-boyfriend; he doesn't live here, it's my apartment."],
       drugs_alcohol: ["He might have had a few drinks, he's a little belligerent but not drunk-drunk.", "Maybe a couple drinks, a little belligerent."],
       contact_deputy: ["Yes, I want a deputy to make him leave.", "Yes, please send someone to remove him."],
     },
     unknowns: ['vehicle_info'],
-    closingAdvice: "S/80 Unwanted Guest — an ex refusing to leave. Confirm no weapon (a weapon updates it to S/22-0) and no physical violence (that would refer to S/31 or, given the relationship, possibly S/38). Get his description and location in the apartment. Because he never lived there, this is a trespass-style unwanted-guest call rather than a domestic — but ask the relationship, because if they'd shared the residence the classification could shift. A deputy responds to remove him.",
+    closingAdvice: "S/38 Domestic — the key teaching point: an ex-boyfriend refusing to leave is a DOMESTIC because the parties are former partners, even though he never lived there and nothing physical has happened. PBSO classifies on the relationship. Confirm no weapon (a weapon adds -0) and that it's still verbal, get the parties + relationship with names, and make sure the caller can keep herself separated. Never tell him she called. A deputy responds to keep the peace and remove him.",
   },
 
   {
@@ -7416,9 +7514,9 @@ const CALL_SCENARIOS = [
 
   {
     id: 's87_stalking',
-    title: 'Stalking — Following and Messages',
-    callClassKey: 'S/87',
-    signal: 'S/87',
+    title: 'Domestic — Ex Stalking / Following',
+    callClassKey: 'S/38',
+    signal: 'S/38',
     difficulty: 'medium',
     caller: {
       name: 'Vanessa Joseph',
@@ -7434,22 +7532,22 @@ const CALL_SCENARIOS = [
       callerLocation: "I'm inside my workplace, looking out at the parking lot.",
     },
     problem: {
-      summary: 'Ongoing stalking — repeated following and messages, suspect now outside her workplace. Supervisor notification. Check for protection orders. Keep her safe inside.',
+      summary: 'Ex-partner repeatedly following and messaging the caller, now outside her workplace. Classified S/38 Domestic because the parties are former partners. Supervisor notification; check for protection orders; keep her safe inside.',
       duration: 'Ongoing for weeks; he\'s here now',
       escalation: 'Suspect present at her location',
     },
     requiresEMS: false,
-    callClass: 'S/87 Stalking — willful, repeated following/harassing. Supervisor notification. Check for protection orders. Get the suspect description and keep the caller safe.',
+    callClass: 'S/38 Domestic — the stalker is the caller\'s ex-partner, so PBSO classifies it as a Domestic. The stalking behavior drives the urgency, but the relationship sets the signal. Notify a supervisor (SMSPV,,Incident #), ALWAYS check for a protection/restraining order (it changes enforcement), get the suspect description, and keep the caller safe. Never tell the suspect she called.',
     officerSafety: ['weapons', 'suspect_description'],
     expectedEntities: {
       persons: [
-        { label: 'The ex who is stalking her', role: 'Suspect', keyFields: ['sex', 'race', 'clothing', 'notes'], detail: 'Known ex, repeatedly following her, currently outside her workplace' },
+        { label: 'The ex (other party to the domestic)', role: 'Subject', keyFields: ['first', 'last', 'sex', 'race'], detail: 'Brian Tate — known ex-partner, repeatedly following her, currently outside her workplace. Do not disclose to him that she called.' },
       ],
       vehicles: [
         { label: "The stalker's vehicle", keyFields: ['color', 'make', 'style'], detail: 'Parked outside her work right now' },
       ],
     },
-    priorityChecklist: ['location', 'caller_info', 'duration', 'weapons', 'supervisor_notify', 'caller_safety', 'suspect_description'],
+    priorityChecklist: ['location', 'caller_info', 'weapons', 'physical_violence', 'parties_involved', 'supervisor_notify', 'caller_safety', 'suspect_description'],
     answers: {
       location: ["5512 Quail Run Drive, Royal Palm Beach — the Quail Run veterinary clinic, that's where I work.", "Quail Run vet clinic, 5512 Quail Run Drive."],
       city: ["Royal Palm Beach."],
@@ -7462,13 +7560,15 @@ const CALL_SCENARIOS = [
       supervisor_notify: ["__SUPERVISOR__"],
       caller_safety: ["I'm inside the clinic with the doors locked, my coworkers are here. I'm staying inside.", "Inside with doors locked, coworkers present."],
       protection_order: ["I filed for a restraining order last week but I don't think it's been served yet.", "I have a restraining order filed, not sure it's served yet."],
+      parties_involved: ["It's my ex-boyfriend, Brian Tate. Just him — he's the one following me.", "My ex-boyfriend Brian Tate."],
+      physical_violence: ["He hasn't put hands on me, it's the following and the messages. But I'm scared it could turn physical.", "No physical contact yet, just following and texting."],
       suspect_description: ["His name is Brian Tate. White male, early 30s, short brown hair, athletic build, usually wears a gray hoodie. About 6 foot.", "White male, early 30s, brown hair, athletic, gray hoodie, 6 foot — Brian Tate."],
       suspect_location: ["He's sitting in his car in our parking lot. He hasn't come in.", "In his car in the clinic parking lot."],
       vehicle_info: ["He drives a black Dodge Charger. It's parked facing the building.", "Black Dodge Charger in the lot."],
       subject_names: ["Brian Tate. He's my ex.", "Brian Tate, my ex-boyfriend."],
     },
     unknowns: ['drugs_alcohol'],
-    closingAdvice: "S/87 Stalking — a pattern of willful, repeated following and harassment, with the suspect present at her workplace right now. Notify a supervisor (SMSPV,,Incident #). Crucially, ask about protection/restraining orders — she has one filed, which changes the deputies' enforcement options. Get his description and vehicle, confirm she's safe inside with the doors locked, and keep her on the line. A known, named suspect on scene with a possible order makes this a priority response.",
+    closingAdvice: "S/38 Domestic — the stalking behavior is what's dangerous, but because the suspect is her ex-partner PBSO classifies it as a Domestic. Notify a supervisor (SMSPV,,Incident #) and ALWAYS ask about a protection/restraining order — she has one filed, which changes enforcement options. Get the parties + relationship, his description and vehicle, confirm she's safe inside with doors locked, and never reveal she called. A named ex on scene with a possible order is a priority domestic response.",
   },
 
   {
@@ -8604,7 +8704,8 @@ const QUESTION_CATEGORIES = [
   { id: 'suspect_location',    keywords: ['where is he', 'where\'s he', 'wheres he', 'where is she', 'where\'s she', 'where is the suspect', 'where\'s the suspect', 'where are they', 'where\'re they', 'still on scene', 'is he still there', 'is she still there', 'is he still', 'are they still', 'is the suspect still', 'is he still on scene', 'is she still on scene', 'are they still on scene', 'is the suspect on scene', 'where is he now', 'where\'s he now', 'wheres he now', 'where\'s the guy', 'wheres the guy', 'where\'s the man', 'where is the guy', 'where is the man', 'where\'s the subject', 'where is the subject', 'is he nearby', 'are they nearby', 'is he around', 'where is he located'] },
   { id: 'direction_of_travel', keywords: ['direction', 'which way', 'what way did', 'fled', 'ran', 'run off', 'took off', 'left in', 'leave the scene', 'did they leave', 'did he leave', 'did she leave', 'have they left', 'has he left', 'going north', 'going south', 'going east', 'going west', 'headed', 'where did they go', 'where did he go', 'where\'d they go', 'whered they go', 'where\'d he go', 'where\'d he take off', 'whered he take off', 'take off to', 'which direction did', 'did the suspect flee', 'did he flee', 'did they flee', 'last seen heading', 'last known direction', 'mode of travel'] },
   { id: 'subject_names',       keywords: ['do you know their name', 'their names', 'do you know them', 'do you know who they are', 'do you know who did', 'know who did this', 'do you know the neighbor', 'know the neighbors', 'what are their names', 'what is their name', 'know who he is', 'know who she is', 'know who the suspect', 'do you know the suspect', 'suspect\'s name', 'subject\'s name', 'know the people', 'who are they', 'do you know the parties', 'name of the people', 'names of the people', 'name of the suspect', 'name of the subject', 'identify them', 'identify the suspect', 'can you identify', 'any idea who', 'idea who that is', 'idea who did', 'know the person who', 'who the person is', 'do you recognize', 'happen to know who', 'know who this is', 'who this person is', 'who that person is'] },
-  { id: 'parties_involved',    keywords: ['who is involved', 'who else is there', 'who is fighting', 'who is arguing', 'parties involved', 'is it a couple', 'related', 'relationship between them'] },
+  { id: 'protection_order',    keywords: ['restraining order', 'protection order', 'protective order', 'injunction', 'no contact order', 'no-contact order', 'is there an order', 'do you have an order', 'court order against'] },
+  { id: 'parties_involved',    keywords: ['who is involved', "who's involved", 'whos involved', 'who all is involved', 'who else is there', 'who is fighting', 'who is arguing', 'parties involved', 'how many parties', 'is it a couple', 'relationship between them'] },
   // Officer safety
   { id: 'premise_hazard',      keywords: ['premise hazard', 'premise/hazard', 'premise and hazard', 'previous calls', 'history at this address', 'flags on the address', 'check the premise', 'check premise', 'any hazards at', 'premise check'] },
   { id: 'weapon_type',         keywords: ['what type of weapon', 'what kind of weapon', 'type of weapon', 'what weapon', 'what kind of gun', 'what type of gun', 'what kind of knife', 'handgun or rifle', 'pistol or', 'what sort of weapon', 'what kind of firearm', 'is it a handgun', 'is it a rifle', 'is it a knife'] },
@@ -8672,7 +8773,7 @@ const QUESTION_CATEGORIES = [
   { id: 'method_escape',       keywords: ['method of escape', 'how did he escape', 'how did they escape', 'how did he get out'] },
   { id: 'accomplice',          keywords: ['accomplice', 'anyone help', 'anyone with him', 'did he have help'] },
   { id: 'info_source',         keywords: ['who is providing', 'who is reporting', 'who called this in', 'what agency', 'source of information'] },
-  { id: 'relationship',        keywords: ['relationship', 'how do you know', 'are you related', 'your relationship to'] },
+  { id: 'relationship',        keywords: ['relationship', 'how do you know', 'are you related', 'your relationship to', 'who are you to', 'how are you related', 'what\'s your relationship', 'whats your relationship', 'are you family', 'how do you know them', 'how do you know her', 'how do you know him'] },
   { id: 'custody',             keywords: ['custodial', 'non-custodial', 'custody', 'who has custody'] },
   { id: 'tracking_device',     keywords: ['tracking device', 'gps', 'project lifesaver', 'safety net', 'tracker', 'wearing a tracker'] },
   { id: 'cell_phone',          keywords: ['cell phone', 'cellphone', 'do they have a phone', 'phone to ping', 'ping the phone', 'carrier'] },
@@ -8711,11 +8812,16 @@ function matchCallSimQuestion(text) {
   const aboutOrg = /(alarm company|monitoring company|company name|business name|name of the (company|business|store|agency|alarm))/.test(t);
   const mentionsName = !aboutOrg && (/\bname\b/.test(t) || /\bnamed\b/.test(t) || /\bwho is (he|she|they|the)\b/.test(t) || /\bwho are they\b/.test(t));
   if (mentionsName) {
-    const aboutCaller = /\byour\b/.test(t) || /\byou'?re\b/.test(t) || /who am i speaking|who'?s calling|whos calling|may i (have|get) your|calling from|reporting (party|person)/.test(t);
-    const aboutThirdParty = /\b(his|her|their|theyre|they'?re|the (suspect|subject|guy|man|woman|male|female|person|people|driver|other|neighbor|offender|perp)|suspect'?s|subject'?s|guy'?s|other party|that (guy|man|woman|person))\b/.test(t)
-      || /name of (the|that|this|him|her|them|whoever|the person|the people|the suspect|the subject)/.test(t)
+    // A possessive pointing at a relationship party ("your ex's name", "your
+    // husband's name") is about the THIRD PARTY even though it contains "your".
+    const possessiveThirdParty = /\byour\s+(ex|ex-?boyfriend|ex-?girlfriend|ex-?husband|ex-?wife|boyfriend|girlfriend|husband|wife|spouse|partner|fiance|son|daughter|mother|mom|father|dad|sister|brother|neighbor|landlord|tenant|roommate|the other|attacker|abuser|subject|suspect)('?s)?\b/.test(t);
+    const aboutCaller = !possessiveThirdParty && (/\byour\b/.test(t) || /\byou'?re\b/.test(t) || /who am i speaking|who'?s calling|whos calling|may i (have|get) your|calling from|reporting (party|person)/.test(t));
+    const aboutThirdParty = possessiveThirdParty
+      || /\b(his|her|their|theyre|they'?re|the (suspect|subject|guy|man|woman|male|female|person|people|driver|other|neighbor|offender|perp|ex|husband|wife|boyfriend|girlfriend|landlord)|suspect'?s|subject'?s|guy'?s|ex'?s|husband'?s|wife'?s|boyfriend'?s|girlfriend'?s|landlord'?s|other party|that (guy|man|woman|person))\b/.test(t)
+      || /name of (the|that|this|him|her|them|whoever|the person|the people|the suspect|the subject|the ex|the other)/.test(t)
       || /do you (know|have) (a |the )?names?( for| of)?/.test(t)
-      || /(suspect|subject|offender|driver|attacker|intruder|prowler|shooter)/.test(t);
+      || /(suspect|subject|offender|driver|attacker|intruder|prowler|shooter)/.test(t)
+      || /\bex-?(boyfriend|girlfriend|husband|wife)?'?s?\s+name\b/.test(t);
     if (aboutCaller && !aboutThirdParty) return 'caller_name';
     if (aboutThirdParty && !aboutCaller) {
       // On a medical/injury call a third-party name is the PATIENT; otherwise
@@ -8728,6 +8834,27 @@ function matchCallSimQuestion(text) {
     // Ambiguous "what's the name" with no owner cue → fall through to keyword
     // matching, which will land on caller_name only via an explicit phrase.
   }
+
+  // ---- Phone disambiguation --------------------------------------------
+  // "your number" = caller callback; "her number / a number for the subject /
+  // does she have a cell" = the SUBJECT's phone (cell_phone), not the caller's.
+  const mentionsPhone = /\b(phone|number|cell|cellphone|telephone|callback)\b/.test(t) || /reach (her|him|them)\b/.test(t);
+  if (mentionsPhone) {
+    // "your mom's/mother's/dad's number" is the SUBJECT, not the caller, even
+    // though it contains "your".
+    const possessiveSubject = /your (mom|mother|dad|father|son|daughter|sister|brother|husband|wife|grandmother|grandfather|neighbor|friend|the subject)'?s? (phone|number|cell)/.test(t);
+    const callerPhone = !possessiveSubject && (/\byour\b|you'?re calling from|reach you|call you back|contact you|number for you/.test(t));
+    const subjPhone = /(number|phone|cell) (for|on|to reach) (her|him|them|the subject|the mother|the mom|mom|the patient)/.test(t)
+      || /\b(her|his|their) (phone|number|cell)/.test(t)
+      || /(the subject'?s|the mother'?s|mom'?s|the patient'?s) (phone|number|cell)/.test(t)
+      || /reach (her|him|them)\b/.test(t)
+      || /does (she|he|the subject|the mother) have a (phone|cell)/.test(t)
+      || /your (mom|mother|dad|father|son|daughter|sister|brother|husband|wife|grandmother|grandfather|neighbor|friend)'?s? (phone|number|cell)/.test(t);
+    if (subjPhone && !callerPhone) return 'cell_phone';
+    if (callerPhone && !subjPhone) return 'caller_callback';
+  }
+  // ---------------------------------------------------------------------
+
   // ---- Weapon disambiguation (runs before keyword loop) ----------------
   const hasW = (...ws) => ws.some(w => t.includes(' ' + w + ' ') || t.includes(' ' + w) || t.includes(w + ' '));
   const weaponMentioned = hasW('weapon', 'weapons', 'gun', 'guns', 'knife', 'firearm', 'pistol', 'rifle', 'armed');
@@ -9002,6 +9129,28 @@ const storage = {
 
   getMastery(cardId) {
     return this.data.mastery[cardId] || 'unseen';
+  },
+
+  // Dictation drill best-performance record.
+  getDictationBest() {
+    return this.data.dictationBest || null;
+  },
+  recordDictation(attempted, correct, bestStreak, durationMin) {
+    if (!attempted) return;
+    const pct = Math.round((correct / attempted) * 100);
+    const prev = this.data.dictationBest || { bestPct: 0, bestStreak: 0, bestPerMin: 0, sessions: 0, totalAttempted: 0, totalCorrect: 0 };
+    const perMin = durationMin ? +(attempted / durationMin).toFixed(1) : 0;
+    this.data.dictationBest = {
+      bestPct: Math.max(prev.bestPct, pct),
+      bestStreak: Math.max(prev.bestStreak, bestStreak || 0),
+      bestPerMin: Math.max(prev.bestPerMin || 0, perMin),
+      sessions: (prev.sessions || 0) + 1,
+      totalAttempted: (prev.totalAttempted || 0) + attempted,
+      totalCorrect: (prev.totalCorrect || 0) + correct,
+      lastPct: pct,
+    };
+    this.save();
+    return this.data.dictationBest;
   },
 
   // The trainee's grading mode: 'co1' (non-emergency, the default — their
@@ -9338,6 +9487,30 @@ const state = {
   mapQuizResults: null,        // { n: { graded: 'correct'|'wrong', userAnswer, correct } }
   mapQuizStartedAt: null,
   mapQuizFinishedAt: null,
+
+  // Dictation drill — TTS reads an entry once, trainee types it, app verifies.
+  // Built to drill fast, accurate transcription of numbers and names over a
+  // sustained 5-10 minute session, the way a real call-taker keys live audio.
+  dictation: {
+    running: false,
+    ended: false,
+    durationMin: 5,            // session length (minutes)
+    startedAt: null,
+    endsAt: null,
+    types: ['phone', 'name', 'plate'],  // which entry kinds are in the mix
+    current: null,             // { kind, spoken, answer, displayHint }
+    typed: '',
+    phase: 'idle',             // 'idle' | 'speaking' | 'awaiting' | 'feedback'
+    lastJudge: null,           // null | { correct, answer, typed, kind }
+    attempted: 0,
+    correct: 0,
+    streak: 0,
+    bestStreak: 0,
+    charCount: 0,              // total characters correctly transcribed (for pace)
+    history: [],               // recent { kind, answer, typed, correct }
+    spokenOnce: false,         // guard: each entry is read exactly once
+    tickHandle: null,
+  },
 
   // Call simulator
   callSim: {
@@ -10601,6 +10774,7 @@ function render() {
   else if (state.view === 'callsim-picker') body = renderCallSimPicker();
   else if (state.view === 'callsim-call') body = renderCallSimCall();
   else if (state.view === 'callsim-debrief') body = renderCallSimDebrief();
+  else if (state.view === 'dictation') body = renderDictation();
   else body = renderStudy();
   app.innerHTML = renderStatusBar() + body;
   attachHandlers();
@@ -10670,6 +10844,8 @@ function renderHome() {
         ${renderTestCard()}
 
         ${renderCallSimCard()}
+
+        ${renderDictationCard()}
 
         ${renderMapQuizCard()}
 
@@ -10851,6 +11027,26 @@ function renderCallSimCard() {
         </div>
       </div>
       <button class="test-btn" style="background: var(--blue); color: #061121;" data-action="start-call-sim">${ov.attempts ? 'CONTINUE →' : 'START →'}</button>
+    </div>
+  `;
+}
+
+function renderDictationCard() {
+  const best = storage.getDictationBest();
+  const subtitle = best
+    ? `best ${best.bestPct}% · ${best.bestPerMin}/min · ${best.sessions} session${best.sessions === 1 ? '' : 's'}`
+    : 'numbers & names · read once · timed session';
+  return `
+    <div class="test-card">
+      <div class="mc-left">
+        <div class="test-icon" style="color: var(--amber);">⌨</div>
+        <div class="mc-text">
+          <div class="mc-label mono" style="color: var(--amber);">DICTATION DRILL</div>
+          <div class="mc-title">Type what you hear</div>
+          <div class="mc-subtitle mono">${subtitle}</div>
+        </div>
+      </div>
+      <button class="test-btn" style="background: var(--amber); color: #1a1205;" data-action="open-dictation">${best ? 'DRILL →' : 'START →'}</button>
     </div>
   `;
 }
@@ -11420,6 +11616,357 @@ function renderTestResults() {
   `;
 }
 
+/* ---------- DICTATION DRILL ---------- */
+
+const DICT_TYPE_LABELS = {
+  phone: 'Phone numbers',
+  name: 'Names (first + last)',
+  plate: 'License plates',
+  address: 'Street addresses',
+  incident: 'Incident numbers',
+};
+
+function renderDictation() {
+  const d = state.dictation;
+
+  // ----- Session running / feedback -----
+  if (d.running) {
+    const remainingMs = Math.max(0, d.endsAt - Date.now());
+    const mm = Math.floor(remainingMs / 60000);
+    const ss = String(Math.floor((remainingMs % 60000) / 1000)).padStart(2, '0');
+    const pct = d.attempted ? Math.round((d.correct / d.attempted) * 100) : 100;
+    const elapsedMin = Math.max(0.0167, (Date.now() - d.startedAt) / 60000);
+    const perMin = (d.attempted / elapsedMin).toFixed(1);
+
+    const j = d.lastJudge;
+    const phaseMsg =
+      d.phase === 'speaking' ? 'Listen…' :
+      d.phase === 'awaiting' ? 'Type what you heard, then press Enter' :
+      d.phase === 'feedback' ? (j && j.correct ? 'Correct' : 'Check it') : '';
+
+    const feedbackBlock = (d.phase === 'feedback' && j) ? `
+      <div class="dict-feedback ${j.correct ? 'correct' : 'wrong'}">
+        <div class="dict-feedback-icon">${j.correct ? '✓' : '✗'}</div>
+        <div class="dict-feedback-body">
+          ${j.correct
+            ? `<div class="dict-fb-line mono">${escapeHtml(j.answer)}</div>`
+            : `<div class="dict-fb-line mono"><span class="dict-fb-correct">${escapeHtml(j.answer)}</span></div>
+               <div class="dict-fb-sub mono">you typed: ${escapeHtml(j.typed || '—')}</div>`}
+        </div>
+      </div>` : '';
+
+    const histRows = d.history.slice(0, 8).map(h => `
+      <div class="dict-hist-row ${h.correct ? 'ok' : 'no'} mono">
+        <span class="dict-hist-mark">${h.correct ? '✓' : (h.skipped ? '–' : '✗')}</span>
+        <span class="dict-hist-ans">${escapeHtml(h.answer)}</span>
+        ${h.correct ? '' : `<span class="dict-hist-typed">${escapeHtml(h.typed || '')}</span>`}
+      </div>`).join('');
+
+    return `
+      <main class="dictation">
+        <div class="container dict-container">
+          <div class="dict-topbar">
+            <div class="dict-timer mono ${remainingMs < 30000 ? 'low' : ''}">⏱ ${mm}:${ss}</div>
+            <div class="dict-stats mono">
+              <span><b>${d.correct}</b>/${d.attempted}</span>
+              <span class="dict-stat-div">·</span>
+              <span>${pct}%</span>
+              <span class="dict-stat-div">·</span>
+              <span>streak <b>${d.streak}</b></span>
+              <span class="dict-stat-div">·</span>
+              <span>${perMin}/min</span>
+            </div>
+            <button class="dict-quit mono" data-action="dictation-quit">END</button>
+          </div>
+
+          <div class="dict-stage">
+            <div class="dict-kind mono">${d.current ? (DICT_TYPE_LABELS[d.current.kind] || d.current.displayHint) : ''}</div>
+            <div class="dict-phase mono ${d.phase}">${phaseMsg}</div>
+
+            <div class="dict-input-wrap">
+              <input
+                id="dictation-input"
+                class="dict-input mono"
+                type="text"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="${d.phase === 'speaking' ? '…' : 'type here'}"
+                value="${escapeHtml(d.typed)}"
+                ${d.phase === 'feedback' ? 'disabled' : ''}
+              >
+            </div>
+
+            ${feedbackBlock}
+
+            <div class="dict-actions">
+              <button class="dict-btn primary" data-action="dictation-submit" ${d.phase !== 'awaiting' ? 'disabled' : ''}>SUBMIT (Enter)</button>
+              <button class="dict-btn ghost" data-action="dictation-skip" ${d.phase === 'feedback' ? 'disabled' : ''}>SKIP</button>
+            </div>
+            ${!audio.available ? `<div class="dict-note mono">Voice output isn't available in this browser — the entry is shown as text. Use Google Chrome for audio.</div>` : `<div class="dict-note mono">Each entry is read once. Listen carefully.</div>`}
+          </div>
+
+          ${histRows ? `<div class="dict-history"><div class="dict-history-label mono">Recent</div>${histRows}</div>` : ''}
+        </div>
+      </main>
+    `;
+  }
+
+  // ----- Results screen (after a session ends) -----
+  if (d.ended) {
+    const pct = d.attempted ? Math.round((d.correct / d.attempted) * 100) : 0;
+    const perMin = d.durationMin ? (d.attempted / d.durationMin).toFixed(1) : '0';
+    const best = storage.getDictationBest();
+    const tier = pct >= 95 ? 'pass' : pct >= 80 ? 'partial' : 'fail';
+    return `
+      <main class="dictation">
+        <div class="container dict-container">
+          <div class="dict-results">
+            <div class="dict-results-label mono">SESSION COMPLETE</div>
+            <div class="dict-results-score ${tier}">${pct}%</div>
+            <div class="dict-results-sub mono">${d.correct} correct of ${d.attempted} · best streak ${d.bestStreak} · ${perMin}/min</div>
+            <div class="dict-results-grid">
+              <div class="dict-rstat"><div class="mono dict-rstat-label">Entries</div><div class="dict-rstat-val">${d.attempted}</div></div>
+              <div class="dict-rstat"><div class="mono dict-rstat-label">Accuracy</div><div class="dict-rstat-val">${pct}%</div></div>
+              <div class="dict-rstat"><div class="mono dict-rstat-label">Best streak</div><div class="dict-rstat-val">${d.bestStreak}</div></div>
+              <div class="dict-rstat"><div class="mono dict-rstat-label">Pace</div><div class="dict-rstat-val">${perMin}<span class="dict-rstat-unit">/min</span></div></div>
+            </div>
+            ${best ? `<div class="dict-best mono">Personal best: ${best.bestPct}% accuracy · ${best.bestStreak} streak · ${best.bestPerMin}/min over ${best.sessions} session${best.sessions===1?'':'s'}</div>` : ''}
+            <div class="dict-results-actions">
+              <button class="dict-btn primary" data-action="dictation-restart">RUN ANOTHER →</button>
+              <button class="dict-btn ghost" data-action="dictation-setup">CHANGE SETTINGS</button>
+              <button class="dict-btn ghost" data-action="home">DONE</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    `;
+  }
+
+  // ----- Setup screen -----
+  const best = storage.getDictationBest();
+  const typeChips = Object.keys(DICT_TYPE_LABELS).map(k => `
+    <button class="dict-chip ${d.types.includes(k) ? 'active' : ''}" data-action="dictation-toggle-type" data-type="${k}">${DICT_TYPE_LABELS[k]}</button>
+  `).join('');
+  const durChips = [3, 5, 10].map(n => `
+    <button class="dict-chip ${d.durationMin === n ? 'active' : ''}" data-action="dictation-set-duration" data-min="${n}">${n} min</button>
+  `).join('');
+
+  return `
+    <main class="dictation">
+      <div class="container dict-container">
+        <div class="dict-setup">
+          <div class="dict-setup-label mono">DICTATION DRILL</div>
+          <h1>Type what you hear.</h1>
+          <p>A name or number is read aloud <strong>once</strong>. Type it and press Enter — the drill verifies it instantly and moves on. Built to sharpen fast, accurate transcription the way you'd key live audio at the desk. Runs as a continuous timed session.</p>
+
+          <div class="dict-setup-section">
+            <div class="dict-setup-heading mono">What to drill</div>
+            <div class="dict-chip-row">${typeChips}</div>
+          </div>
+
+          <div class="dict-setup-section">
+            <div class="dict-setup-heading mono">Session length</div>
+            <div class="dict-chip-row">${durChips}</div>
+          </div>
+
+          <button class="dict-btn primary big" data-action="dictation-start" ${d.types.length ? '' : 'disabled'}>START SESSION →</button>
+          ${d.types.length ? '' : `<div class="dict-note mono">Pick at least one type to drill.</div>`}
+          ${best ? `<div class="dict-best mono">Personal best: ${best.bestPct}% accuracy · ${best.bestStreak} streak · ${best.bestPerMin}/min</div>` : ''}
+          <button class="dict-back mono" data-action="home">← BACK TO HOME</button>
+        </div>
+      </div>
+    </main>
+  `;
+}
+
+// Build one entry to dictate. Returns { kind, spoken (TTS text), answer
+// (canonical typed form), displayHint }. The spoken form is shaped for the
+// audio engine (e.g. phone digits read in natural 3-3-4 groups); the answer
+// is what we expect the trainee to have typed.
+function makeDictationEntry(types) {
+  const kind = _rand(types && types.length ? types : ['phone', 'name', 'plate']);
+
+  if (kind === 'phone') {
+    const phone = _randPhone();                 // 561-555-XXXX
+    const digits = phone.replace(/\D/g, '');
+    // Read as grouped digits: "five six one ... five five five ... dd dd"
+    const groups = [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6)];
+    const spoken = groups.map(g => g.split('').join(' ')).join(', ');
+    return { kind, spoken, answer: phone, displayHint: 'phone number' };
+  }
+
+  if (kind === 'plate') {
+    const pd = _randPlateData();                 // { compact, phonetic }
+    // Read with NATO phonetics so letters are unambiguous, digits as digits.
+    const spoken = pd.compact.split('').map(c =>
+      /[0-9]/.test(c) ? c : `${c}, as in ${NATO_ALPHABET[c] || c}`
+    ).join(', ');
+    return { kind, spoken, answer: pd.compact, displayHint: 'license plate (6 characters)' };
+  }
+
+  if (kind === 'address') {
+    const a = _rand(RANDOM_POOLS.addresses);
+    const full = a.street + ', ' + a.city;
+    return { kind, spoken: full, answer: full, displayHint: 'street address' };
+  }
+
+  if (kind === 'callback' || kind === 'incident') {
+    // Incident-style number: 26-XXXXXX, read as grouped digits.
+    const n = '26-' + String(Math.floor(100000 + Math.random() * 900000));
+    const spoken = n.replace('-', ', ').split('').map(c => /\d/.test(c) ? c : '').join(' ').replace(/\s+/g, ' ').trim();
+    return { kind: 'incident', spoken: '2 6, ' + n.slice(3).split('').join(' '), answer: n, displayHint: 'incident number' };
+  }
+
+  // name (default)
+  const first = _rand(RANDOM_POOLS.firstNames);
+  const last = _rand(RANDOM_POOLS.lastNames);
+  const full = first + ' ' + last;
+  return { kind: 'name', spoken: full, answer: full, displayHint: 'full name' };
+}
+
+// Normalize for comparison: case-insensitive, collapse spaces; for numbers,
+// compare digits only so "561-555-0123" == "5615550123" == "561 555 0123".
+function dictationNormalize(s, kind) {
+  s = (s || '').trim();
+  if (kind === 'phone' || kind === 'incident') {
+    return s.replace(/[^0-9]/g, '');
+  }
+  if (kind === 'plate') {
+    return s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  }
+  // names / addresses: case-insensitive, single-spaced, punctuation-light
+  return s.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function startDictation(durationMin) {
+  const d = state.dictation;
+  d.running = true;
+  d.ended = false;
+  d.durationMin = durationMin || d.durationMin || 5;
+  d.startedAt = Date.now();
+  d.endsAt = d.startedAt + d.durationMin * 60 * 1000;
+  d.attempted = 0;
+  d.correct = 0;
+  d.streak = 0;
+  d.bestStreak = 0;
+  d.charCount = 0;
+  d.history = [];
+  d.lastJudge = null;
+  d.typed = '';
+  state.view = 'dictation';
+  render();
+  nextDictationEntry();
+}
+
+function nextDictationEntry() {
+  const d = state.dictation;
+  if (!d.running) return;
+  // End the session when the timer is up (but always finish the current entry).
+  if (Date.now() >= d.endsAt) { endDictation(); return; }
+  d.current = makeDictationEntry(d.types);
+  d.typed = '';
+  d.lastJudge = null;
+  d.phase = 'speaking';
+  d.spokenOnce = false;
+  render();
+  speakDictationEntry();
+}
+
+// Speak the current entry EXACTLY ONCE, then open the input for typing.
+function speakDictationEntry() {
+  const d = state.dictation;
+  if (!d.current || d.spokenOnce) return;
+  d.spokenOnce = true;
+  if (!audio.available) {
+    // No TTS available — fall back to showing the text so the drill still works.
+    d.phase = 'awaiting';
+    render();
+    focusDictationInput();
+    return;
+  }
+  audio.speak(d.current.spoken, {
+    onEnd: () => {
+      if (state.view !== 'dictation' || !d.running) return;
+      d.phase = 'awaiting';
+      render();
+      focusDictationInput();
+    },
+    onCancel: () => {
+      if (state.view !== 'dictation' || !d.running) return;
+      d.phase = 'awaiting';
+      render();
+      focusDictationInput();
+    },
+  });
+}
+
+function focusDictationInput() {
+  setTimeout(() => {
+    const inp = document.getElementById('dictation-input');
+    if (inp) { inp.focus(); }
+  }, 30);
+}
+
+function submitDictation() {
+  const d = state.dictation;
+  if (!d.running || d.phase !== 'awaiting' || !d.current) return;
+  const typed = d.typed;
+  const correct = dictationNormalize(typed, d.current.kind) === dictationNormalize(d.current.answer, d.current.kind);
+  d.attempted += 1;
+  if (correct) {
+    d.correct += 1;
+    d.streak += 1;
+    d.bestStreak = Math.max(d.bestStreak, d.streak);
+    d.charCount += d.current.answer.replace(/\s/g, '').length;
+  } else {
+    d.streak = 0;
+  }
+  d.lastJudge = { correct, answer: d.current.answer, typed, kind: d.current.kind, hint: d.current.displayHint };
+  d.history.unshift(d.lastJudge);
+  if (d.history.length > 12) d.history.pop();
+  d.phase = 'feedback';
+  render();
+  // Brief pause on the result, then auto-advance (correct = quick, wrong = a beat longer to read it).
+  audio.pause(correct ? 850 : 1600, () => {
+    if (state.view === 'dictation' && d.running) nextDictationEntry();
+  });
+}
+
+function skipDictation() {
+  const d = state.dictation;
+  if (!d.running || !d.current) return;
+  audio.cancel();
+  d.attempted += 1;
+  d.streak = 0;
+  d.lastJudge = { correct: false, answer: d.current.answer, typed: '(skipped)', kind: d.current.kind, hint: d.current.displayHint, skipped: true };
+  d.history.unshift(d.lastJudge);
+  if (d.history.length > 12) d.history.pop();
+  nextDictationEntry();
+}
+
+function endDictation() {
+  const d = state.dictation;
+  d.running = false;
+  d.ended = true;
+  d.phase = 'idle';
+  d.current = null;
+  audio.cancel();
+  // Persist a best-accuracy record.
+  try { storage.recordDictation(d.attempted, d.correct, d.bestStreak, d.durationMin); } catch (e) {}
+  render();
+}
+
+function quitDictation() {
+  audio.cancel();
+  const d = state.dictation;
+  if (d.running && d.attempted > 0) { endDictation(); return; }
+  d.running = false; d.ended = false; d.current = null; d.phase = 'idle';
+  state.view = 'home';
+  render();
+}
+
 /* ---------- CALL SIM ---------- */
 
 function startCallSim() {
@@ -11755,6 +12302,65 @@ function showCallSimMicStatus(msg) {
 }
 
 // Compute the debrief score based on what categories were covered
+// Narrative-aware credit for CO1 grading. A CO1 call-taker NOTATES facts in the
+// CAD comments rather than necessarily asking each question aloud, so a required
+// item should count if its substance shows up in the narrative — including the
+// PBSO shorthand/signal codes the trainee is trained to use (e.g. "s/20" for a
+// mental-health subject, "s/57" for narcotics, "1025" for unable to contact,
+// "lives alone", a stated relationship like "daughter"/"comp is her son").
+// This checks the comments text for evidence that a given question was covered.
+function narrativeCoversQuestion(qid, narrative, scenario) {
+  const n = ' ' + (narrative || '').toLowerCase().replace(/[.,;:!?()/]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  if (!n.trim()) return false;
+  const any = (...res) => res.some(re => re.test(n));
+  switch (qid) {
+    case 'relationship':
+      // A stated kinship or explicit relationship between comp and subject.
+      return any(
+        /\b(daughter|son|mother|mom|father|dad|wife|husband|sister|brother|grandmother|grandfather|grandson|granddaughter|aunt|uncle|niece|nephew|cousin|spouse|parent|child|in[- ]?law|fiance|girlfriend|boyfriend|partner|neighbor|friend|coworker|roommate|landlord|tenant|caretaker|caregiver)\b/,
+        /\bcomp(lainant)?\s+is\b/, /\brelation(ship)?\b/, /\bref(erence)?\s+(to\s+)?(her|his|their)\b/
+      );
+    case 'duration':
+      // Last-contact / time-delay notation, including "1025" (unable to contact)
+      // and "45" (PBSO unable-to-contact) phrasings and explicit day counts.
+      return any(
+        /\b\d+\s*(day|days|hour|hours|hr|hrs|week|weeks|minute|minutes|min)\b/,
+        /\b(yesterday|two days|three days|last (night|seen|contact|spoke)|since|hasn'?t (heard|spoken|reached|seen))\b/,
+        /\b10[\s-]?25\b/, /\b1025\b/, /\bunable to (contact|reach)\b/, /\bno contact\b/, /\b45\b/
+      );
+    case 'subject_names': {
+      // Require an actual age/DOB notation, or an explicit "subj/subject named X"
+      // with a real name token — not the bare word "name" or a generic phrase.
+      return any(
+        /\b(dob|d o b|date of birth)\b/,
+        /\b\d{1,3}\s*(yo|y o|years old)\b/,
+        /\bage\s*\d{1,3}\b/,
+        /\bsubj(ect)?\s+(name[d]?|is)\s+[a-z]+\s+[a-z]+/,
+        /\bname[d]?\s*[:\-]\s*[a-z]+\s+[a-z]+/
+      );
+    }
+    case 'medical_history':
+      // Mental-health / substance / medical notation, INCLUDING PBSO signal codes
+      // the CO1 is trained to use (s/20 baker act/mental, s/57 narcotics, s/2,
+      // s/70 etc.) and plain-language mentions.
+      return any(
+        /\bs\/?\s?20\b/, /\bs\/?\s?57\b/, /\bs\/?\s?2\b/, /\bs\/?\s?70\b/,
+        /\b(mental|baker act|psych|suicid|depress|dementia|alzheimer|memory|heart condition|diabet|medical|medication|meds|blood pressure|drug|drugs|narcotic|alcohol|substance|intoxicat|overdose|disab)\w*/
+      );
+    case 'caller_alone':
+      // "lives alone" / "lives by herself" / "alone since".
+      return any(/\blives?\s+(alone|by (her|him)self)\b/, /\b(alone|by herself|by himself)\b/);
+    case 'cell_phone':
+      return any(/\b(cell|landline|phone)\b/);
+    case 'caller_location':
+      return any(/\b(out of state|ohio|calling from|not local|in [a-z]+ ?,? ?(ohio|georgia|state)|won'?t respond|can'?t (get|come|respond)|will respond)\b/);
+    case 'medications':
+      return any(/\b(medication|meds|prescription|nitro|blood pressure)\b/);
+    default:
+      return false;
+  }
+}
+
 // Signal grading: the CAD dropdown stores the base code in Incid Type and the
 // modifier (IP / JOC / -0 …) in Mod Circum. A scenario's ground truth is
 // signal (a real selectable code) + optional signalMod. Full credit if the
@@ -11849,15 +12455,22 @@ function gradeCallSim() {
       { id: 'nature', label: 'General description of the event', ok: wasAsked('nature') || commentsMeaningful },
     ];
 
+    // Credit a question if it was ASKED of the caller OR notated in the CAD
+    // comments — a CO1 documents facts in the narrative, doesn't always ask
+    // them aloud (and uses signal/10-codes to do it).
+    const narrative = (cad.comments || '');
+    const covered = (qid) => {
+      if (qid === 'supervisor_notify') return supervisorDone;
+      if (wasAsked(qid)) return true;
+      return narrativeCoversQuestion(qid, narrative, scenario);
+    };
     // The slide's CO1-core directives (questions flagged co1 in the criteria)
     const coreQs = (criteria.questions || []).filter(q => q.co1).map(q => ({
-      id: q.id, label: q.text, required: true,
-      asked: q.id === 'supervisor_notify' ? supervisorDone : wasAsked(q.id),
+      id: q.id, label: q.text, required: true, asked: covered(q.id),
     }));
     // Everything else on the slide = good practice / volunteered credit in this seat
     const bonusQs = (criteria.questions || []).filter(q => !q.co1).map(q => ({
-      id: q.id, label: q.text, required: false,
-      asked: q.id === 'supervisor_notify' ? supervisorDone : wasAsked(q.id),
+      id: q.id, label: q.text, required: false, asked: covered(q.id),
     }));
     checklist = [...coreQs, ...bonusQs];
     missedRequired = coreQs.filter(c => !c.asked);
@@ -12210,6 +12823,10 @@ function friendlyCategoryName(catId) {
     whats_suspicious: 'What makes them suspicious',
     relationship: 'Relationship to the subject',
     roadblock: 'Roadblock',
+    protection_order: 'Protection / restraining order',
+    parties_involved: 'Parties involved + relationship',
+    physical_violence: 'Verbal or physical?',
+    cell_phone: "Subject's phone",
   };
   return map[catId] || catId;
 }
@@ -14279,6 +14896,46 @@ function attachHandlers() {
   }
 
   // Call sim input handler — Enter sends the question
+  if (state.view === 'dictation' && state.dictation.running) {
+    const d = state.dictation;
+    const inp = document.getElementById('dictation-input');
+    if (inp) {
+      // Track typed value WITHOUT re-rendering (keeps focus + caret while typing).
+      inp.addEventListener('input', e => { d.typed = e.target.value; });
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          d.typed = inp.value;
+          if (d.phase === 'awaiting') submitDictation();
+        }
+      });
+      if (d.phase === 'awaiting') {
+        const active = document.activeElement;
+        if (active !== inp) inp.focus();
+      }
+    }
+    // Once-per-second clock tick: update only the timer text and end the
+    // session when time runs out, without re-rendering (which would steal focus).
+    if (d.tickHandle) { clearInterval(d.tickHandle); d.tickHandle = null; }
+    d.tickHandle = setInterval(() => {
+      if (state.view !== 'dictation' || !d.running) { clearInterval(d.tickHandle); d.tickHandle = null; return; }
+      const remainingMs = Math.max(0, d.endsAt - Date.now());
+      const el = document.querySelector('.dict-timer');
+      if (el) {
+        const mm = Math.floor(remainingMs / 60000);
+        const ss = String(Math.floor((remainingMs % 60000) / 1000)).padStart(2, '0');
+        el.textContent = '\u23F1 ' + mm + ':' + ss;
+        if (remainingMs < 30000) el.classList.add('low');
+      }
+      // When time expires, let the current entry finish; end on next advance.
+      if (remainingMs <= 0 && d.phase === 'awaiting') {
+        clearInterval(d.tickHandle); d.tickHandle = null;
+        endDictation();
+      }
+    }, 1000);
+  }
+
   if (state.view === 'callsim-call') {
     const input = document.getElementById('callsim-input');
     if (input) {
@@ -14559,6 +15216,52 @@ function handleAction(e) {
 
     case 'abandon-map-quiz':
       abandonMapQuiz();
+      break;
+
+    case 'open-dictation':
+      state.view = 'dictation';
+      state.dictation.ended = false;
+      state.dictation.running = false;
+      render();
+      break;
+
+    case 'dictation-toggle-type': {
+      const k = el.dataset.type;
+      const arr = state.dictation.types;
+      const i = arr.indexOf(k);
+      if (i >= 0) arr.splice(i, 1); else arr.push(k);
+      render();
+      break;
+    }
+
+    case 'dictation-set-duration':
+      state.dictation.durationMin = parseInt(el.dataset.min, 10) || 5;
+      render();
+      break;
+
+    case 'dictation-start':
+    case 'dictation-restart':
+      startDictation(state.dictation.durationMin);
+      break;
+
+    case 'dictation-setup':
+      audio.cancel();
+      state.dictation.ended = false;
+      state.dictation.running = false;
+      state.view = 'dictation';
+      render();
+      break;
+
+    case 'dictation-submit':
+      submitDictation();
+      break;
+
+    case 'dictation-skip':
+      skipDictation();
+      break;
+
+    case 'dictation-quit':
+      quitDictation();
       break;
 
     case 'start-call-sim':
