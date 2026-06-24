@@ -1439,18 +1439,33 @@
   }
   .callsim-mic-btn:hover { color: var(--blue); border-color: var(--blue); }
   .callsim-mic-btn.listening {
-    color: var(--red);
-    border-color: var(--red);
-    background: rgba(248, 113, 113, 0.1);
+    color: var(--green);
+    border-color: var(--green);
+    background: rgba(74, 222, 128, 0.1);
   }
   .callsim-mic-btn.listening::before {
     content: '';
     position: absolute;
     inset: -5px;
     border-radius: 50%;
-    border: 2px solid var(--red);
-    opacity: 0.6;
-    animation: voicePulse 1.4s ease-out infinite;
+    border: 2px solid var(--green);
+    opacity: 0.55;
+    animation: voicePulse 1.6s ease-out infinite;
+  }
+  .callsim-mic-btn.muted {
+    color: var(--red);
+    border-color: var(--red);
+    background: rgba(248, 113, 113, 0.12);
+    opacity: 0.85;
+  }
+  .callsim-mic-btn.muted::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 130%; height: 2px;
+    background: var(--red);
+    transform: translate(-50%, -50%) rotate(-45deg);
+    border-radius: 2px;
   }
   .callsim-send-btn {
     background: var(--blue);
@@ -4015,7 +4030,7 @@
    confirm GitHub Pages has served the new version (it caches).
    Format: v MAJOR.MINOR — YYYY-MM-DD
    ============================================================ */
-const APP_VERSION = 'v4.6 — 2026-06-16';
+const APP_VERSION = 'v4.9 — 2026-06-17';
 
 /* ============================================================
    DATA — PBSO Dispatch Signals & Codes
@@ -5488,9 +5503,9 @@ const CALL_SCENARIOS = [
 
   {
     id: 'theft_past',
-    title: 'Theft — Past Tense Report',
-    callClassKey: 'S/30',
-    signal: 'S/30',
+    title: 'Theft of Auto Parts — Cat Converter (cold report)',
+    callClassKey: 'S/64',
+    signal: 'S/64',
     difficulty: 'easy',
     vehiclePlate: { oldCompact: 'JTW-4421', oldState: 'Florida' },
     caller: {
@@ -5507,12 +5522,12 @@ const CALL_SCENARIOS = [
       callerLocation: "I'm at home, in my driveway looking at the truck.",
     },
     problem: {
-      summary: 'Catalytic converter stolen overnight from a parked F-150',
+      summary: 'Catalytic converter cut off a parked F-150 overnight. A part taken from the EXTERIOR of a vehicle is S/64 Theft of Auto Parts, NOT a generic S/30 larceny.',
       duration: 'Sometime between 11pm last night and 7am this morning',
       escalation: 'None — already happened, suspect long gone',
     },
     officerSafety: [],
-    priorityChecklist: ['location', 'caller_info', 'nature', 'time_of_incident', 'vehicle_info'],
+    priorityChecklist: ['location', 'caller_info', 'duration', 'items_stolen', 'vehicle_info'],
     answers: {
       location: ["2207 Marina Boulevard, Unit 4. Riviera Beach. Marina Bay Townhomes.", "Marina Bay Townhomes, unit 4. 2207 Marina Boulevard."],
       city: ["Riviera Beach."],
@@ -5542,7 +5557,7 @@ const CALL_SCENARIOS = [
       anything_else: ["I just want a report number for my insurance. I know you guys probably won't catch them but I need the paperwork.", "That's all I really need. Just the case number."],
     },
     unknowns: ['suspect_armed', 'drugs_alcohol'],
-    closingAdvice: "Cold theft report — no officer safety concerns. Get evidence preserved (don't touch anything, document with photos), neighbor's Ring footage, complex gate camera footage. Provide case number, advise caller about supplements if more is discovered missing. Document the pattern — multiple cats taken in this complex points to a serial offender.",
+    closingAdvice: "S/64 Theft of Auto Parts — the classification lesson: a catalytic converter (or any part) taken off the EXTERIOR of a vehicle is S/64, not a generic S/30 Theft/Larceny. (If they had broken into the cab and taken items from INSIDE, that would be S/21V vehicle burglary.) It's a cold report — no officer-safety concerns. Capture the time delay, exactly what was taken, and the vehicle (CYMBALS + plate). Preserve evidence (don't touch the shavings/tool marks), get the neighbor's Ring and the gate cameras. Provide a case number. Document the pattern — multiple converters taken in this complex points to a serial offender.",
   },
 
   {
@@ -9855,6 +9870,65 @@ const recognizer = {
     }, 120);
   },
 
+  // ---- Always-on continuous mode (call sim) ----
+  // Stays open for the whole call. Each completed utterance is emitted via
+  // onUtterance the moment the engine finalizes it, so the trainee can talk and
+  // type at once. Auto-restarts if the browser ends the session. Muting is
+  // handled by the caller (it ignores utterances while muted).
+  _cont: null,
+  startContinuous({ onUtterance, onInterim, onError, onState } = {}) {
+    if (!this.available) { if (onError) onError('unsupported'); return; }
+    this._teardown();
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec;
+    try { rec = new SR(); } catch (e) { if (onError) onError('construct-failed'); return; }
+    rec.lang = 'en-US';
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.continuous = true;
+    this._cont = { onUtterance, onInterim, onError, onState, stopped: false };
+    rec.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i];
+        if (res.isFinal) {
+          const txt = (res[0].transcript || '').trim();
+          if (txt && this._cont && this._cont.onUtterance) this._cont.onUtterance(txt);
+        } else {
+          interim += res[0].transcript;
+        }
+      }
+      if (this._cont && this._cont.onInterim) this._cont.onInterim(interim.trim());
+    };
+    rec.onerror = (e) => {
+      const reason = e.error || 'error';
+      if (reason === 'aborted') return;
+      // no-speech / network blips: let onend auto-restart instead of surfacing.
+      if (reason === 'no-speech' || reason === 'network') return;
+      if (this._cont && this._cont.onError) this._cont.onError(reason);
+    };
+    rec.onend = () => {
+      // Auto-restart unless we were told to stop (keeps the line always open).
+      if (this._cont && !this._cont.stopped) {
+        try { rec.start(); return; } catch (e) {}
+        // If immediate restart throws, retry shortly.
+        setTimeout(() => { if (this._cont && !this._cont.stopped && this.rec === rec) { try { rec.start(); } catch (e2) {} } }, 200);
+      }
+    };
+    this.rec = rec;
+    this.listening = true;
+    setTimeout(() => {
+      if (this.rec !== rec) return;
+      try { rec.start(); if (this._cont && this._cont.onState) this._cont.onState('listening'); }
+      catch (e) { if (this._cont && this._cont.onError) this._cont.onError('busy'); }
+    }, 120);
+  },
+  stopContinuous() {
+    if (this._cont) this._cont.stopped = true;
+    this._teardown();
+    this._cont = null;
+  },
+
   // Stop listening and finalize — triggers onResult with whatever was captured.
   finish() {
     this._manualStop = true;
@@ -11692,7 +11766,7 @@ function renderDictation() {
                 autocorrect="off"
                 autocapitalize="off"
                 spellcheck="false"
-                placeholder="${d.phase === 'speaking' ? '…' : 'type here'}"
+                placeholder="type here"
                 value="${escapeHtml(d.typed)}"
                 ${d.phase === 'feedback' ? 'disabled' : ''}
               >
@@ -11701,7 +11775,7 @@ function renderDictation() {
             ${feedbackBlock}
 
             <div class="dict-actions">
-              <button class="dict-btn primary" data-action="dictation-submit" ${d.phase !== 'awaiting' ? 'disabled' : ''}>SUBMIT (Enter)</button>
+              <button class="dict-btn primary" data-action="dictation-submit" ${d.phase === 'feedback' ? 'disabled' : ''}>SUBMIT (Enter)</button>
               <button class="dict-btn ghost" data-action="dictation-skip" ${d.phase === 'feedback' ? 'disabled' : ''}>SKIP</button>
             </div>
             ${!audio.available ? `<div class="dict-note mono">Voice output isn't available in this browser — the entry is shown as text. Use Google Chrome for audio.</div>` : `<div class="dict-note mono">Each entry is read once. Listen carefully.</div>`}
@@ -11889,17 +11963,44 @@ function speakDictationEntry() {
   audio.speak(d.current.spoken, {
     onEnd: () => {
       if (state.view !== 'dictation' || !d.running) return;
+      if (d.phase !== 'speaking') return;   // already answered early
       d.phase = 'awaiting';
-      render();
-      focusDictationInput();
+      updateDictationPhaseUI();             // in-place — preserves caret + text
     },
     onCancel: () => {
       if (state.view !== 'dictation' || !d.running) return;
+      if (d.phase !== 'speaking') return;
       d.phase = 'awaiting';
-      render();
-      focusDictationInput();
+      updateDictationPhaseUI();
     },
   });
+}
+
+// Flip the speaking→awaiting UI WITHOUT re-rendering, so the input element is
+// never destroyed mid-type (a full render would reset the caret to position 0
+// and the trainee's next keystrokes would land at the front of the string).
+function updateDictationPhaseUI() {
+  const d = state.dictation;
+  const phaseEl = document.querySelector('.dict-phase');
+  if (phaseEl) {
+    phaseEl.className = 'dict-phase mono ' + d.phase;
+    phaseEl.textContent =
+      d.phase === 'speaking' ? 'Listen\u2026' :
+      d.phase === 'awaiting' ? 'Type what you heard, then press Enter' : '';
+  }
+  const submitBtn = document.querySelector('[data-action="dictation-submit"]');
+  if (submitBtn) submitBtn.disabled = (d.phase === 'feedback');
+  const inp = document.getElementById('dictation-input');
+  if (inp) {
+    inp.placeholder = 'type here';
+    // Only grab focus if the trainee isn't already typing; never reposition the
+    // caret of an input they're actively using.
+    if (document.activeElement !== inp) {
+      inp.focus();
+      const len = inp.value.length;
+      try { inp.setSelectionRange(len, len); } catch (e) {}
+    }
+  }
 }
 
 function focusDictationInput() {
@@ -11911,7 +12012,11 @@ function focusDictationInput() {
 
 function submitDictation() {
   const d = state.dictation;
-  if (!d.running || d.phase !== 'awaiting' || !d.current) return;
+  if (!d.running || !d.current) return;
+  if (d.phase !== 'awaiting' && d.phase !== 'speaking') return;
+  audio.cancel();                         // stop the read-aloud if answered early
+  const inp = document.getElementById('dictation-input');
+  if (inp) d.typed = inp.value;           // freshest value, in case input lagged state
   const typed = d.typed;
   const correct = dictationNormalize(typed, d.current.kind) === dictationNormalize(d.current.answer, d.current.kind);
   d.attempted += 1;
@@ -11983,6 +12088,7 @@ function startCallSim() {
     startedAt: null,
     endedAt: null,
     listening: false,
+    micMuted: false,
     autoSpeak: state.callSim?.autoSpeak ?? true,
     emsConferenced: false,
     supervisorNotified: false,
@@ -12026,6 +12132,7 @@ function pickCallScenario(scenarioId) {
     startedAt: Date.now(),
     endedAt: null,
     listening: false,
+    micMuted: false,
     autoSpeak: state.callSim.autoSpeak,
     showChecklist: false,
     cad: { location: '', city: '', subdiv: '', building: '', floor: '', aptUnit: '', zip: '', crossStrs: '', locName: '', description: '', incidType: '', modCircum: '', priority: '', comments: '', callerFirst: '', callerLast: '', callerPhone: '', rp: { dob: '', sex: '', race: '', height: '', weight: '', hair: '', clothing: '', notes: '' } },
@@ -12041,6 +12148,14 @@ function pickCallScenario(scenarioId) {
   if (state.callSim.autoSpeak && audio.available) {
     setTimeout(() => speakCallerLine(scenario.caller.opening), 400);
   }
+
+  // Open the mic immediately and leave it open for the whole call (always-on,
+  // mute via Left Ctrl). Delay slightly so it doesn't fight the opening TTS.
+  if (recognizer.available) {
+    setTimeout(() => {
+      if (state.view === 'callsim-call' && state.callSim.started && !state.callSim.ended) startCallSimMic();
+    }, 900);
+  }
 }
 
 // Returns the active randomized scenario copy for the current call, or null.
@@ -12048,6 +12163,79 @@ function getActiveScenario() {
   if (state.callSim && state.callSim.scenario) return state.callSim.scenario;
   // Fallback: look up the original (e.g. after a reload mid-call)
   return CALL_SCENARIOS.find(s => s.id === state.callSim.scenarioId) || null;
+}
+
+// Update ONLY the conversation transcript + the live checklist, leaving the CAD
+// panel's DOM untouched. A full render() rebuilds the CAD inputs and resets
+// their scroll position and the active tab/field every time a question is sent,
+// which makes typing up the call impossible. This surgical update keeps the
+// transcript current without disturbing what the trainee is entering.
+function refreshCallSimTranscript() {
+  const scenario = getActiveScenario();
+  if (!scenario) { render(); return; }
+
+  const turnsHtml = state.callSim.transcript.map(t => {
+    if (t.role === 'system') {
+      return `<div class="callsim-turn-system mono">${escapeHtml(t.text)}</div>`;
+    }
+    return `
+    <div class="callsim-turn ${t.role}">
+      <span class="callsim-turn-role mono">${t.role === 'dispatcher' ? 'YOU' : 'CALLER'}</span>
+      <div class="callsim-turn-text">${escapeHtml(t.text)}</div>
+    </div>
+  `;
+  }).join('');
+
+  const transcriptEl = document.querySelector('.callsim-transcript');
+  if (!transcriptEl) { render(); return; }  // not on the call screen as expected
+  transcriptEl.innerHTML = turnsHtml;
+  transcriptEl.scrollTop = transcriptEl.scrollHeight;
+
+  // Update the live checklist ticks in place (if the panel is shown).
+  const asked = state.callSim.categoriesAsked || {};
+  document.querySelectorAll('.callsim-checklist-item[data-check-id]').forEach(el => {
+    const id = el.dataset.checkId;
+    const isAsked = id === 'caller_info'
+      ? (!!asked['caller_name'] || !!asked['caller_callback'])
+      : !!asked[id];
+    el.classList.toggle('complete', isAsked);
+    const icon = el.querySelector('.callsim-checklist-icon');
+    if (icon) icon.textContent = isAsked ? '\u2713' : '\u25CB';
+  });
+
+  // Update the EMS / supervisor / transfer status flags without a full render.
+  updateCallSimFlags(scenario);
+
+  // Re-focus the question box so the next question can be typed immediately.
+  const input = document.querySelector('.callsim-input');
+  if (input && document.activeElement !== input) {
+    const activeIsCad = document.activeElement &&
+      (document.activeElement.hasAttribute?.('data-cad') ||
+       document.activeElement.hasAttribute?.('data-person-idx') ||
+       document.activeElement.hasAttribute?.('data-rp-field'));
+    if (!activeIsCad) input.focus();  // don't yank focus out of a CAD field being typed
+  }
+}
+
+// Refresh just the colored status flags (EMS conferenced, supervisor notified,
+// priority-transfer needed/done) in place.
+function updateCallSimFlags(scenario) {
+  const flagsHost = document.querySelector('.callsim-flags');
+  if (!flagsHost) return;
+  const cs = state.callSim;
+  const needsEMS = !!scenario.requiresEMS;
+  // Match the render's supervisor logic exactly: criteria flag OR a required
+  // supervisor-trigger question on the call class.
+  const cc = scenario.callClassKey ? CALL_CLASS_CRITERIA[scenario.callClassKey] : null;
+  const needsSupervisor = cc && (cc.requiresSupervisor || (cc.questions || []).some(q => q.supervisorTrigger && q.required));
+  let html = '';
+  if (needsEMS && !cs.emsConferenced) html += `<div class="callsim-ems-flag needed mono">\u26A0 NEEDS EMS \u2014 conference Fire Rescue</div>`;
+  if (needsEMS && cs.emsConferenced) html += `<div class="callsim-ems-flag done mono">\u2713 EMS CONFERENCED</div>`;
+  if (cs.mode !== 'co1' && needsSupervisor && !cs.supervisorNotified) html += `<div class="callsim-ems-flag needed mono">\u26A0 NOTIFY SUPERVISOR \u2014 SMSPV,,Incident #</div>`;
+  if (cs.mode !== 'co1' && needsSupervisor && cs.supervisorNotified) html += `<div class="callsim-ems-flag done mono">\u2713 SUPERVISOR NOTIFIED</div>`;
+  if (cs.mode === 'co1' && scenario.transferRequired && !cs.admin911Done) html += `<div class="callsim-ems-flag needed mono">\u26A0 PRIORITY CALL \u2014 ADMIN TO 911 TRANSFER</div>`;
+  if (cs.mode === 'co1' && cs.admin911Done) html += `<div class="callsim-ems-flag done mono">\u2713 TRANSFERRED TO 911 (incident ${cs.incidentNumber || ''})</div>`;
+  flagsHost.innerHTML = html;
 }
 
 function sendCallSimQuestion(text) {
@@ -12087,13 +12275,7 @@ function sendCallSimQuestion(text) {
       text: '— Supervisor notified via CAD message (SMSPV,,Incident #). —',
       category: 'supervisor_notify',
     });
-    render();
-    setTimeout(() => {
-      const transcript = document.querySelector('.callsim-transcript');
-      if (transcript) transcript.scrollTop = transcript.scrollHeight;
-      const input = document.querySelector('.callsim-input');
-      if (input) input.focus();
-    }, 50);
+    refreshCallSimTranscript();
     return;
   }
 
@@ -12111,31 +12293,16 @@ function sendCallSimQuestion(text) {
       text: "Oh thank God. Okay. I hear them. Please hurry.",
       category: 'conference_ems',
     });
-    render();
-    setTimeout(() => {
-      const transcript = document.querySelector('.callsim-transcript');
-      if (transcript) transcript.scrollTop = transcript.scrollHeight;
-      if (state.callSim.autoSpeak && audio.available) speakCallerLine("Oh thank God. Okay. Please hurry.");
-      const input = document.querySelector('.callsim-input');
-      if (input) input.focus();
-    }, 50);
+    refreshCallSimTranscript();
+    if (state.callSim.autoSpeak && audio.available) speakCallerLine("Oh thank God. Okay. Please hurry.");
     return;
   }
 
   state.callSim.transcript.push({ role: 'caller', text: response.line, category: response.category });
-  render();
-
-  // Scroll transcript to bottom and speak the response
-  setTimeout(() => {
-    const transcript = document.querySelector('.callsim-transcript');
-    if (transcript) transcript.scrollTop = transcript.scrollHeight;
-    if (state.callSim.autoSpeak && audio.available) {
-      speakCallerLine(response.line);
-    }
-    // Re-focus the input so the player can immediately ask the next question
-    const input = document.querySelector('.callsim-input');
-    if (input) input.focus();
-  }, 50);
+  refreshCallSimTranscript();
+  if (state.callSim.autoSpeak && audio.available) {
+    speakCallerLine(response.line);
+  }
 }
 
 // Execute the CO1 Admin-to-911 transfer: conference in a 911 call-taker,
@@ -12143,12 +12310,6 @@ function sendCallSimQuestion(text) {
 // "admin to 911 transfer GF" in the comments — is graded from the CAD field.)
 function doAdmin911Transfer() {
   if (!state.callSim.started || state.callSim.ended) return;
-  const scrollAndFocus = () => setTimeout(() => {
-    const transcript = document.querySelector('.callsim-transcript');
-    if (transcript) transcript.scrollTop = transcript.scrollHeight;
-    const input = document.querySelector('.callsim-input');
-    if (input) input.focus();
-  }, 50);
 
   if ((state.callSim.mode || 'co1') !== 'co1') {
     state.callSim.transcript.push({
@@ -12156,7 +12317,7 @@ function doAdmin911Transfer() {
       text: '— You ARE the 911 call-taker on this call. There is no one to transfer to — work the call to completion (full question slate, EMS conference, supervisor notification). —',
       category: 'admin_911_transfer',
     });
-    render(); scrollAndFocus(); return;
+    refreshCallSimTranscript(); return;
   }
   if (state.callSim.admin911Done) {
     state.callSim.transcript.push({
@@ -12164,7 +12325,7 @@ function doAdmin911Transfer() {
       text: '— The call has already been transferred to the 911 call-taker. —',
       category: 'admin_911_transfer',
     });
-    render(); scrollAndFocus(); return;
+    refreshCallSimTranscript(); return;
   }
   state.callSim.admin911Done = true;
   const inc = state.callSim.incidentNumber || (state.callSim.incidentNumber = '26-' + String(Math.floor(100000 + Math.random() * 900000)));
@@ -12173,7 +12334,7 @@ function doAdmin911Transfer() {
     { role: 'system', text: `— Provided the 911 call-taker the incident number (${inc}). —`, category: 'admin_911_transfer' },
     { role: 'system', text: '— Call transferred to the 911 call-taker. Finish your CAD entry and end the call. —', category: 'admin_911_transfer' },
   );
-  render(); scrollAndFocus();
+  refreshCallSimTranscript();
 }
 
 function endCallSim() {
@@ -12192,8 +12353,7 @@ function endCallSim() {
     }
   } catch (e) { /* non-fatal */ }
   state.view = 'callsim-debrief';
-  recognizer.stop();
-  state.callSim.listening = false;
+  stopCallSimMic();
   render();
   window.scrollTo(0, 0);
 }
@@ -12202,9 +12362,8 @@ function abandonCallSim() {
   if (state.callSim.started && state.callSim.transcript.length > 2) {
     if (!confirm('Leave this call? Your progress won\'t be saved.')) return;
   }
-  recognizer.stop();
+  stopCallSimMic();
   audio.cancel();
-  state.callSim.listening = false;
   state.view = 'callsim-picker';
   state.callSim.scenarioId = null;
   state.callSim.transcript = [];
@@ -12224,74 +12383,60 @@ function speakCallerLine(text) {
 }
 
 // Voice input — start listening for the dispatcher's spoken question
-function callSimToggleMic() {
-  if (state.callSim.listening) {
-    // Second tap = finish and transcribe what was captured. Guard so a held
-    // key or a rapid double-tap can't queue two finish() calls (which is what
-    // caused the same utterance to send multiple times).
-    if (state.callSim._micFinishing) return;
-    state.callSim._micFinishing = true;
-    showCallSimMicStatus('Processing…');
-    recognizer.finish();
-    state.callSim.listening = false;
-    updateMicButtonUI();
-    return;
-  }
-  if (state.callSim._micFinishing) return;
+// The mic is ALWAYS OPEN during a call. Each finished utterance is sent as a
+// question automatically. Left Ctrl (or the mic button) toggles MUTE — while
+// muted, captured speech is ignored. This lets the trainee talk and type at once.
+function startCallSimMic() {
   if (!recognizer.available) {
     showCallSimMicStatus(recognizerErrorMessage('unsupported'));
     return;
   }
   state.callSim.listening = true;
+  state.callSim.micMuted = false;
   updateMicButtonUI();
-  showCallSimMicStatus('🎤 Listening… speak, then tap the mic again to send.');
-
-  recognizer.start({
+  showCallSimMicStatus('🎤 Mic open — just speak. Left Ctrl mutes.');
+  recognizer.startContinuous({
     onInterim: (text) => {
-      // Live feedback — show what's being heard in the input as you speak
-      const input = document.getElementById('callsim-input');
-      if (input && text) input.value = text;
-      if (text) showCallSimMicStatus('🎤 Hearing: "' + text + '" — tap mic to send.');
+      if (state.callSim.micMuted) return;
+      if (text) showCallSimMicStatus('🎤 ' + text);
     },
-    onResult: (alternatives) => {
-      const text = (alternatives[0] || '').trim();
-      state.callSim.listening = false;
-      state.callSim._micFinishing = false;
-      updateMicButtonUI();
-      if (text) {
-        // Auto-send the recognized speech immediately (no need to tap Ask)
-        const input = document.getElementById('callsim-input');
-        if (input) input.value = '';
-        showCallSimMicStatus('Sent: "' + text + '"');
-        sendCallSimQuestion(text);
-      } else {
-        showCallSimMicStatus('Didn\'t catch anything. Tap the mic and try again.');
-      }
+    onUtterance: (text) => {
+      if (state.callSim.micMuted || !text) return;
+      sendCallSimQuestion(text);
     },
     onError: (reason) => {
-      state.callSim.listening = false;
-      state.callSim._micFinishing = false;
-      updateMicButtonUI();
       showCallSimMicStatus(recognizerErrorMessage(reason));
-    },
-    onEnd: () => {
-      state.callSim._micFinishing = false;
-      if (state.callSim.listening) {
-        state.callSim.listening = false;
-        updateMicButtonUI();
-        showCallSimMicStatus('Stopped. Tap the mic to try again.');
-      }
     },
   });
 }
 
+function callSimToggleMic() {
+  // Toggle mute on the always-open mic.
+  if (!recognizer.available) { showCallSimMicStatus(recognizerErrorMessage('unsupported')); return; }
+  if (!state.callSim.listening) { startCallSimMic(); return; }  // safety: (re)open if closed
+  state.callSim.micMuted = !state.callSim.micMuted;
+  updateMicButtonUI();
+  showCallSimMicStatus(state.callSim.micMuted ? '🔇 Muted — press Left Ctrl to unmute.' : '🎤 Mic open — just speak. Left Ctrl mutes.');
+}
+
+function stopCallSimMic() {
+  recognizer.stopContinuous();
+  state.callSim.listening = false;
+  state.callSim.micMuted = false;
+}
+
 // Update just the mic button's visual state without a full re-render
 function updateMicButtonUI() {
+  const muted = state.callSim.micMuted;
   const btn = document.querySelector('.callsim-mic-btn');
-  if (btn) btn.classList.toggle('listening', state.callSim.listening);
+  if (btn) {
+    btn.classList.toggle('listening', state.callSim.listening && !muted);
+    btn.classList.toggle('muted', !!muted);
+    btn.title = muted ? 'Muted — press Left Ctrl or click to unmute' : 'Mic is open — press Left Ctrl or click to mute';
+  }
   const input = document.getElementById('callsim-input');
   if (input) {
-    input.placeholder = state.callSim.listening ? 'Listening — speak now…' : 'Ask your question (or tap mic)…';
+    input.placeholder = muted ? 'Mic muted — type, or Left Ctrl to unmute' : 'Speak or type your question…';
   }
 }
 
@@ -12961,7 +13106,7 @@ function renderCallSimCall() {
       ? (!!asked['caller_name'] || !!asked['caller_callback'])
       : !!asked[item.id];
     return `
-      <div class="callsim-checklist-item ${isAsked ? 'complete' : ''}">
+      <div class="callsim-checklist-item ${isAsked ? 'complete' : ''}" data-check-id="${item.id}">
         <span class="callsim-checklist-icon">${isAsked ? '✓' : '○'}</span>
         <span>${escapeHtml(friendlyCategoryName(item.id))}${item.priority ? '' : ' ⚠'}</span>
       </div>
@@ -13001,6 +13146,7 @@ function renderCallSimCall() {
             <h1>Active Call <span class="callsim-mode-chip mono ${state.callSim.mode === '911' ? 'm911' : 'co1'}">${state.callSim.mode === '911' ? '911 MODE' : 'CO1 MODE'}</span></h1>
             <div class="callsim-sub mono">Caller on the line · Classify and type up the call${state.callSim.mode === 'co1' ? ' · Priority calls: Admin→911 transfer' : ''}</div>
           </div>
+          <div class="callsim-flags">
           ${scenario.requiresEMS && !state.callSim.emsConferenced ? `
             <div class="callsim-ems-flag needed mono">⚠ NEEDS EMS — conference Fire Rescue</div>
           ` : ''}
@@ -13019,6 +13165,7 @@ function renderCallSimCall() {
           ${state.callSim.mode === 'co1' && state.callSim.admin911Done ? `
             <div class="callsim-ems-flag done mono">✓ TRANSFERRED TO 911 (incident ${state.callSim.incidentNumber || ''})</div>
           ` : ''}
+          </div>
         </div>
 
         <div class="callsim-call-body">
@@ -13029,7 +13176,7 @@ function renderCallSimCall() {
             <div class="callsim-input-area">
               <div class="callsim-input-row">
                 ${micAvailable ? `
-                  <button class="callsim-mic-btn ${state.callSim.listening ? 'listening' : ''}" data-action="callsim-toggle-mic" title="Speak your question — or press Left Ctrl to start, Left Ctrl again to send">
+                  <button class="callsim-mic-btn ${state.callSim.listening && !state.callSim.micMuted ? 'listening' : ''} ${state.callSim.micMuted ? 'muted' : ''}" data-action="callsim-toggle-mic" title="Mic is always open — press Left Ctrl or click to mute/unmute">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -13039,14 +13186,14 @@ function renderCallSimCall() {
                   </button>
                 ` : ''}
                 <input type="text" class="callsim-input" id="callsim-input"
-                  placeholder="${state.callSim.listening ? 'Listening — speak now…' : 'Ask your question (or tap mic)…'}"
+                  placeholder="${state.callSim.micMuted ? 'Mic muted — type, or Left Ctrl to unmute' : 'Speak or type your question…'}"
                   autocomplete="off">
                 <button class="callsim-send-btn" data-action="callsim-send">Ask →</button>
               </div>
               <div id="callsim-mic-status" style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: ${micAvailable && !recognizer.isReliableBrowser ? 'var(--amber)' : 'var(--text-muted)'}; min-height: 14px;">${
                 micAvailable && !recognizer.isReliableBrowser
                   ? 'Voice input is only reliable in Google Chrome. In this browser it may not capture — use the text box, or open the app in Chrome.'
-                  : 'Shortcut: press Left Ctrl to open the mic, Left Ctrl again to send.'
+                  : 'Mic is always open — speak anytime. Left Ctrl mutes/unmutes.'
               }</div>
               <div class="callsim-options">
                 ${state.callSim.mode === 'co1' ? `
@@ -14907,12 +15054,14 @@ function attachHandlers() {
           e.preventDefault();
           e.stopPropagation();
           d.typed = inp.value;
-          if (d.phase === 'awaiting') submitDictation();
+          if (d.phase === 'awaiting' || d.phase === 'speaking') submitDictation();
         }
       });
-      if (d.phase === 'awaiting') {
-        const active = document.activeElement;
-        if (active !== inp) inp.focus();
+      // Focus from the start so typing works while the entry is still being read.
+      if ((d.phase === 'speaking' || d.phase === 'awaiting') && document.activeElement !== inp) {
+        inp.focus();
+        const len = inp.value.length;
+        try { inp.setSelectionRange(len, len); } catch (e) {}
       }
     }
     // Once-per-second clock tick: update only the timer text and end the
@@ -15761,9 +15910,9 @@ function submitTyped() {
    KEYBOARD SHORTCUTS
    ============================================================ */
 
-// Call-sim mic shortcut: Left Ctrl opens the mic, Left Ctrl again sends.
-// Uses key location so the RIGHT Ctrl is free for normal use, and ignores the
-// chord case (Ctrl held with another key, e.g. Ctrl+C) so copy/paste still work.
+// Call-sim mic shortcut: the mic is always open during a call; Left Ctrl toggles
+// MUTE (press again to unmute). Uses key location so the RIGHT Ctrl is free, and
+// ignores chords (Ctrl+C etc.) so copy/paste still work.
 document.addEventListener('keydown', e => {
   if (state.view !== 'callsim-call') return;
   if (!state.callSim || !state.callSim.started || state.callSim.ended) return;
