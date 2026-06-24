@@ -1338,6 +1338,10 @@
   @media (max-width: 800px) {
     .callsim-call-body { grid-template-columns: 1fr; }
   }
+.callsim-log-bar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .callsim-log-toggle { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-size: 11px; letter-spacing: 0.06em; padding: 6px 12px; cursor: pointer; transition: all 0.12s; }
+  .callsim-log-toggle:hover { border-color: var(--blue); color: var(--text); }
+  .callsim-log-hidden { color: var(--text-muted); font-size: 13px; line-height: 1.6; text-align: center; padding: 40px 20px; opacity: 0.75; }
   .callsim-transcript {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -4030,7 +4034,7 @@
    confirm GitHub Pages has served the new version (it caches).
    Format: v MAJOR.MINOR — YYYY-MM-DD
    ============================================================ */
-const APP_VERSION = 'v4.9 — 2026-06-17';
+const APP_VERSION = 'v5.0 — 2026-06-24';
 
 /* ============================================================
    DATA — PBSO Dispatch Signals & Codes
@@ -6292,9 +6296,10 @@ const CALL_SCENARIOS = [
 
   {
     id: 's66_civil_matter',
-    title: 'Civil Matter — Landlord/Tenant Dispute',
-    callClassKey: 'S/66',
-    signal: 'S/66',
+    title: 'Disturbance In Progress — Landlord/Tenant',
+    callClassKey: 'S/22',
+    signal: 'S/22',
+    signalMod: 'IP',
     difficulty: 'easy',
     caller: {
       name: 'Travis Lindqvist',
@@ -6315,9 +6320,9 @@ const CALL_SCENARIOS = [
       escalation: 'Heated but verbal',
     },
     requiresEMS: false,
-    callClass: 'S/66 Civil Matter — a landlord/tenant dispute over rights. Verbal, no weapons, no injuries. PBSO keeps the peace; the underlying dispute is civil, not criminal.',
+    callClass: 'S/22 IP Disturbance In Progress — both parties are present and actively arguing, so it is an active disturbance (S/22 IP), not a cold civil matter. The UNDERLYING rent issue is civil, but the active argument on scene is what you classify. Verbal only here; if it turned physical it would refer to S/31 IP / S/36, and a domestic relationship would make it S/38. Weapons -> S/0 + supervisor.',
     officerSafety: ['weapons'],
-    priorityChecklist: ['location', 'caller_info', 'nature', 'duration', 'physical_violence', 'weapons', 'suspect_description'],
+    priorityChecklist: ['location', 'caller_info', 'physical_violence', 'duration', 'weapons', 'parties_involved', 'suspect_description'],
     answers: {
       subject_names: ["It's my landlord, Mr. Patel — Raj Patel. He owns the building and manages it himself.", "Raj Patel, he's the landlord. His office is on the first floor."],
       location: ["1145 10th Avenue North, apartment 3, Lake Worth Beach. It's a fourplex.", "1145 10th Ave North, apt 3."],
@@ -6329,16 +6334,17 @@ const CALL_SCENARIOS = [
       duration: ["I got home about an hour ago and found the locks changed. He's here now arguing with me.", "About an hour ago."],
       physical_violence: ["No, it's just verbal. We're arguing but nobody's touched anybody.", "Just verbal, no one's gotten physical."],
       weapons: ["No weapons. He's just standing here with his arms crossed being stubborn.", "No, no weapons."],
+      suspect_count: ["Just the two of us — me and my landlord.", "Two people, me and him."],
       nature_dispute: ["He says I owe two months rent. I say he didn't give me proper notice. It's a rent thing.", "It's about back rent and whether he gave proper notice."],
-      suspect_description: ["The landlord? He's a white guy, 50s, bald, heavyset, wearing a polo shirt and khakis. His name's Frank.", "Landlord Frank — white male, 50s, bald, heavyset, polo and khakis."],
-      parties_involved: ["Just me and my landlord, Frank. He owns the building.", "Me and the landlord, Frank."],
+      suspect_description: ["The landlord? He's a white guy, 50s, bald, heavyset, wearing a polo shirt and khakis. That's Raj Patel.", "Landlord Raj Patel — white male, 50s, bald, heavyset, polo and khakis."],
+      parties_involved: ["Just me and my landlord, Raj Patel. He owns the building.", "Me and the landlord, Raj Patel."],
       children_present: ["No kids, no pets. Just the two of us out here.", "No children or animals."],
       injuries: ["No, nobody's hurt. It's just an argument.", "No injuries."],
       drugs_alcohol: ["No, neither of us. He's just being difficult.", "No, nothing like that."],
       suspect_location: ["He's right here, standing by the apartment door with me.", "He's here at the door."],
     },
     unknowns: ['prior_history', 'cameras'],
-    closingAdvice: "S/66 Civil Matter — a landlord/tenant lockout, which is fundamentally a civil dispute. Confirm it's verbal with no weapons and no injuries (any of those would change the call — physical+injured would add Fire Rescue, a weapon would add S/0 + supervisor). PBSO responds to keep the peace and document, but deputies generally won't resolve the civil rent issue on scene. Get both parties' descriptions and what the dispute is about. Routine priority.",
+    closingAdvice: "S/22 IP Disturbance In Progress — the classification lesson: even though the underlying lockout is a civil rent dispute, both parties are on scene actively arguing, so you classify the ACTIVE DISTURBANCE (S/22 IP), not a cold S/66 civil matter. Confirm verbal vs physical (physical refers to S/31 IP / S/36), check weapons (S/0 + supervisor if yes), and a domestic relationship would push it to S/38. Get both parties and what the dispute is about. The rent issue itself is civil — deputies keep the peace, they don't resolve it on scene.",
   },
 
   {
@@ -8704,6 +8710,7 @@ const QUESTION_CATEGORIES = [
   // Location / address
   { id: 'location',            keywords: ['address', 'street address', 'what\'s the address', 'whats the address', 'your location', 'the location', 'what location', 'what\'s your location', 'whats your location', 'location of', 'where is the emergency', 'where\'s the emergency', 'where are you located', 'house number', 'street name', 'what is your location', 'give me the location', 'give me your location', 'location please', 'exact location', 'physical address', 'where\'s it at', 'wheres it at', 'where is it at', 'where at', 'whereabouts', 'where\'s this at', 'wheres this at', 'where is this at', 'where\'s the incident', 'wheres the incident', 'where is the incident', 'where is all this', 'where\'s all this', 'where is this happening', 'where is this taking place', 'where did this happen', 'where did this take place', 'where did this occur', 'what\'s the 20', 'whats the 20', 'what is your 20', 'where you at', 'where\'s the location', 'wheres the location', 'where is that'] },
   { id: 'city',                keywords: ['city', 'what city', 'what town', 'municipality', 'what part of town', 'which city', 'which town', 'what area of town', 'jurisdiction'] },
+  { id: 'residence_type',      keywords: ['house or apartment', 'apartment or house', 'house or an apartment', 'single family or', 'is it a house', 'is this a house', 'is it a home', 'residence or business', 'business or residence', 'home or business', 'is it a residence', 'is this a residence', 'is it residential', 'what kind of building', 'what type of building', 'what type of residence', 'house apartment or', 'is it a apartment', 'is it an apartment', 'house or unit'] },
   { id: 'apartment',           keywords: ['apartment', 'apt', 'unit number', 'apt number', 'suite', 'which unit', 'what unit', 'unit are you in', 'apartment number', 'which apartment', 'what apartment', 'room number', 'lot number'] },
   { id: 'landmark',            keywords: ['landmark', 'cross street', 'cross streets', 'nearest intersection', 'major intersection', 'near what', 'what\'s it near', 'whats it near', 'what is it near', 'what\'s nearby', 'whats nearby', 'closest', 'subdivision', 'neighborhood', 'complex', 'closest cross', 'nearest cross', 'between what streets', 'what road', 'which road'] },
   { id: 'caller_location',     keywords: ['where are you', 'are you on scene', 'are you still there', 'are you there now', 'where are you now', 'are you inside', 'are you outside', 'are you in the', 'are you with him', 'are you with her', 'are you with them', 'are you near', 'are you next to', 'are you at the scene', 'are you on location', 'where are you calling from', 'where are you in relation', 'are you in a safe spot to talk'] },
@@ -8803,7 +8810,7 @@ const QUESTION_CATEGORIES = [
   { id: 'alarm_zone',          keywords: ['which zone', 'what zone', 'where is the alarm coming', 'which door', 'point of alarm', 'zone is', 'what area of the'] },
   { id: 'callback_attempt',    keywords: ['answer on callback', 'anyone answer', 'anybody answer', 'answer when the company', 'answer when you called', 'when the company called', 'callback', 'did you call the', 'reach anyone', 'response on the call', 'someone answer'] },
   { id: 'alarm_company',       keywords: ['alarm company', 'monitoring company', 'company name', 'operator number', 'who is the alarm'] },
-  { id: 'license_plate',       keywords: ['license plate', 'plate number', 'tag number', 'what is the tag', 'plate and state', 'registration'] },
+  { id: 'license_plate',       keywords: ['license plate', 'plate number', 'the plate number', 'whats the plate', 'what is the plate', 'plate of the car', 'plate on the car', 'tag number', 'the tag number', 'whats the tag', 'what is the tag', 'plate and state', 'plate or tag', 'tag or plate', 'what plate', 'which plate', 'plate that was', 'plate that got', 'stolen plate', 'missing plate', 'the tag that', 'registration', 'plate letters', 'plate read'] },
   { id: 'tag_swapped',         keywords: ['swapped', 'swap', 'switched out', 'replaced with another', 'different plate'] },
   // Catch-alls (should be last so more specific patterns match first)
   { id: 'evidence',            keywords: ['evidence', 'left behind', 'fingerprints', 'tool marks'] },
@@ -8817,7 +8824,46 @@ const QUESTION_CATEGORIES = [
 // Match a player question to one of our question categories.
 // Returns the category id, or null if no good match.
 function matchCallSimQuestion(text) {
-  const t = ' ' + text.toLowerCase().replace(/[.,!?]/g, '') + ' ';
+  const raw = (text || '').toLowerCase().trim();
+  const t = ' ' + raw.replace(/[.,!?]/g, '') + ' ';
+
+  // ---- Acknowledgments / restatements (not real questions) -------------
+  // When the dispatcher repeats back or confirms what the caller said ("so
+  // he's arguing with you", "okay he's still there", "got it"), the caller
+  // shouldn't act confused. Treat these as an acknowledgment so the engine
+  // gives a natural "yes/right" rather than "Can you say that again?".
+  // Strip leading filler ("okay", "alright", "so", "and") before judging whether
+  // it's a question — "okay does he have a weapon" is a question, not an ack.
+  const deFiller = raw.replace(/^(okay|ok|alright|all right|so|and|um|uh|well|now|yeah|right)[\s,]+/i, '').trim();
+  const ackOpeners = /^(so|so you|so he|so she|so they|okay so|ok so|alright so|right so|and he|and she|and they|he's|hes|she's|shes|they're|theyre|you're|youre|your|that's|thats|i hear you|got it|gotcha|understood|copy|okay|ok|alright|right|i see|mm|mhm|uh huh)\s*$/;
+  // A leading wh-word or auxiliary signals a real question. But a flat statement
+  // that merely contains "is/are" ("your landlord is arguing with you") is a
+  // restatement, not a question — detect those so they read as acknowledgments.
+  const startsQuestion = /^(what|where|when|who|why|how|which|whose|do|does|did|can|could|would|will|have|has|are|is|tell me|describe|give me|spell|may i|i need|i'?m going to|im going to|let me|please)\b/.test(deFiller);
+  const statementCue = /\b(is|are)\s+(here|present|there|with you|arguing|yelling|standing|still|outside|inside|at the door|on scene|gone|leaving)\b/.test(t) && !/^(is|are)\b/.test(deFiller);
+  const hasWh = /\b(what|where|when|who|why|how|which|whose|describe|give me|spell)\b/.test(t);
+  const isQuestiony = (startsQuestion || raw.endsWith('?') || hasWh) && !statementCue;
+  // Pure acknowledgment: a bare confirmer ("okay", "got it", "mm-hm") OR a
+  // restatement that isn't a question.
+  const bareAck = /^(okay|ok|alright|all right|right|got it|gotcha|understood|copy|i see|i hear you|mm|mhm|uh huh|yeah|yep|yes)\s*$/.test(raw);
+  if (bareAck) return 'acknowledge';
+  if (raw.length && ackOpeners.test(raw) && !isQuestiony) return 'acknowledge';
+  // Restatement: starts like a statement about a third party, no question/wh, has a statement cue.
+  if (raw.length && !isQuestiony && /^(so |okay |alright |and |your |he'?s |she'?s |they'?re |that'?s )/.test(raw) && (statementCue || /\b(arguing|yelling|changed|present|standing|still here|won'?t leave|refusing)\b/.test(t))) {
+    return 'acknowledge';
+  }
+
+  // ---- License plate (route BEFORE generic vehicle) --------------------
+  // "what's the plate / tag" must hit the plate answer, not the car description.
+  if (/\b(plate|tag)\b/.test(t) && !/\b(swap|swapped|switched|replaced|different (plate|tag))\b/.test(t)) {
+    // "your plate" on a stolen-tag call still means the (victim's) plate.
+    if (!/\bbusiness\b/.test(t)) return 'license_plate';
+  }
+
+  // ---- Residence type (house vs apartment / residence vs business) -----
+  if (/(house or (an? )?(apartment|unit)|apartment or (a )?house|single family|residence or business|business or residence|is it (a|an) (house|home|apartment|residence|business)|is this (a|an) (house|home|residence)|what (kind|type) of (building|residence|property)|home or business)/.test(t)) {
+    return 'residence_type';
+  }
 
   // ---- Name disambiguation (runs first) -------------------------------
   // "Name" questions are ambiguous: they can be about the CALLER (your name),
@@ -8966,6 +9012,12 @@ const ANSWER_KEY_FALLBACKS = {
 };
 
 function getCallSimResponse(scenario, categoryId) {
+  // 0. Acknowledgment / restatement — the dispatcher repeated back or confirmed
+  //    something. The caller simply affirms; this is not a fresh question.
+  if (categoryId === 'acknowledge') {
+    const acks = ["Yes, that's right.", "Correct.", "Yes, exactly.", "That's right, yeah.", "Mm-hm, that's correct.", "Yes."];
+    return { line: acks[Math.floor(Math.random() * acks.length)], category: 'acknowledge', isUnknown: false };
+  }
   // 1. Scenario has a specific answer for this category — use it (rotate variants).
   //    For a few categories, fall back to a related key the scenario does have.
   const keys = ANSWER_KEY_FALLBACKS[categoryId] || [categoryId];
@@ -8993,6 +9045,32 @@ function getCallSimResponse(scenario, categoryId) {
 // These are deliberately generic "I don't know / no" style responses — a real
 // caller always answers, even if the answer is "no" or "not sure".
 function getCategoryDefaultAnswer(categoryId, scenario) {
+  // Dynamic, location-derived answers — keep in sync with the scenario address
+  // so asking "house or apartment?" always gets a sensible reply.
+  const loc = scenario.location || {};
+  const apt = loc.apt || '';
+  if (categoryId === 'apartment' || categoryId === 'residence_type') {
+    if (apt) {
+      // Normalize the unit label for natural speech.
+      const m = apt.match(/(apt|apartment|unit|suite|ste|bldg|building|lot|room)\s*\.?\s*([0-9a-z\-]+)/i);
+      if (m) {
+        const kindWord = /suite|ste/i.test(m[1]) ? 'suite' : /bldg|building/i.test(m[1]) ? 'building' : /lot/i.test(m[1]) ? 'lot' : /room/i.test(m[1]) ? 'room' : 'apartment';
+        const num = m[2];
+        if (categoryId === 'residence_type') {
+          return kindWord === 'suite' || kindWord === 'building'
+            ? `It's a ${kindWord} — ${kindWord} ${num}.`
+            : `It's an apartment, ${kindWord} ${num}.`;
+        }
+        return `${kindWord.charAt(0).toUpperCase()+kindWord.slice(1)} ${num}.`;
+      }
+      return `It's ${apt}.`;
+    }
+    // No unit on file → it's a house / single-family.
+    return categoryId === 'residence_type'
+      ? "It's a single-family house, no apartment or unit number."
+      : "No apartment number — it's a house.";
+  }
+
   const defaults = {
     subject_names:       ["No, I don't know them or their names.", "I don't know who they are, sorry.", "No, I've never met them."],
     suspect_description: ["I didn't really get a good look at them.", "I couldn't give you a good description, sorry.", "I'm not sure, I didn't see them clearly."],
@@ -9546,6 +9624,7 @@ const state = {
     admin911Done: false,   // the 4-step Admin-to-911 transfer was executed
     incidentNumber: null,  // fake incident # generated per call (given to the 911 CT)
     showChecklist: false, // priority checklist hidden by default; toggle to reveal
+    showTranscript: true, // text log visible by default; toggle off for audio-only practice
     // CAD-style call entry — modeled on Motorola PremierOne (the real client).
     // Field names match the actual CAD so muscle memory transfers.
     cad: {
@@ -9892,8 +9971,19 @@ const recognizer = {
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const res = e.results[i];
         if (res.isFinal) {
-          const txt = (res[0].transcript || '').trim();
-          if (txt && this._cont && this._cont.onUtterance) this._cont.onUtterance(txt);
+          const alt = res[0] || {};
+          const txt = (alt.transcript || '').trim();
+          const conf = (typeof alt.confidence === 'number') ? alt.confidence : 1;
+          // Noise rejection: drop very short fragments and low-confidence blips
+          // (these are usually background sound from elsewhere in the room/house,
+          // not the trainee speaking a question). A real question is several
+          // words; a stray cough/TV word is one short token at low confidence.
+          const words = txt.split(/\s+/).filter(Boolean);
+          const tooShort = txt.length < 2 || (words.length < 2 && txt.length < 6);
+          const lowConfidence = conf > 0 && conf < 0.55 && words.length < 3;
+          if (txt && !tooShort && !lowConfidence) {
+            if (this._cont && this._cont.onUtterance) this._cont.onUtterance(txt);
+          }
         } else {
           interim += res[0].transcript;
         }
@@ -12096,6 +12186,7 @@ function startCallSim() {
     admin911Done: false,
     incidentNumber: null,
     showChecklist: false,
+    showTranscript: true,
     cad: { location: '', city: '', subdiv: '', building: '', floor: '', aptUnit: '', zip: '', crossStrs: '', locName: '', description: '', incidType: '', modCircum: '', priority: '', comments: '', callerFirst: '', callerLast: '', callerPhone: '', rp: { dob: '', sex: '', race: '', height: '', weight: '', hair: '', clothing: '', notes: '' } },
     cadTab: 'general',
     addressVerified: false,
@@ -12135,6 +12226,7 @@ function pickCallScenario(scenarioId) {
     micMuted: false,
     autoSpeak: state.callSim.autoSpeak,
     showChecklist: false,
+    showTranscript: true,
     cad: { location: '', city: '', subdiv: '', building: '', floor: '', aptUnit: '', zip: '', crossStrs: '', locName: '', description: '', incidType: '', modCircum: '', priority: '', comments: '', callerFirst: '', callerLast: '', callerPhone: '', rp: { dob: '', sex: '', race: '', height: '', weight: '', hair: '', clothing: '', notes: '' } },
     cadTab: 'general',
     addressVerified: false,
@@ -12188,8 +12280,12 @@ function refreshCallSimTranscript() {
 
   const transcriptEl = document.querySelector('.callsim-transcript');
   if (!transcriptEl) { render(); return; }  // not on the call screen as expected
-  transcriptEl.innerHTML = turnsHtml;
-  transcriptEl.scrollTop = transcriptEl.scrollHeight;
+  if (state.callSim.showTranscript) {
+    transcriptEl.innerHTML = turnsHtml;
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+  } else {
+    transcriptEl.innerHTML = '<div class="callsim-log-hidden mono">Text log hidden \u2014 listen and work the call by ear. Toggle it back on above if you need to read.</div>';
+  }
 
   // Update the live checklist ticks in place (if the panel is shown).
   const asked = state.callSim.categoriesAsked || {};
@@ -13171,7 +13267,14 @@ function renderCallSimCall() {
         <div class="callsim-call-body">
           <!-- LEFT: conversation -->
           <div>
-            <div class="callsim-transcript">${turns}</div>
+            <div class="callsim-log-bar">
+              <button class="callsim-log-toggle mono" data-action="callsim-toggle-transcript" title="Hide the text log to practice getting info by ear">
+                ${state.callSim.showTranscript ? '\u25BE TEXT LOG ON' : '\u25B8 TEXT LOG OFF (audio only)'}
+              </button>
+            </div>
+            <div class="callsim-transcript">${state.callSim.showTranscript
+              ? turns
+              : '<div class="callsim-log-hidden mono">Text log hidden \u2014 listen and work the call by ear. Toggle it back on above if you need to read.</div>'}</div>
 
             <div class="callsim-input-area">
               <div class="callsim-input-row">
@@ -15448,6 +15551,11 @@ function handleAction(e) {
 
     case 'callsim-toggle-checklist':
       state.callSim.showChecklist = !state.callSim.showChecklist;
+      render();
+      break;
+
+    case 'callsim-toggle-transcript':
+      state.callSim.showTranscript = !state.callSim.showTranscript;
       render();
       break;
 
